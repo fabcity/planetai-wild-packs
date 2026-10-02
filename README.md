@@ -31,8 +31,21 @@ has read it. A code pack (one with an `adapter.py`) runs Python with your node's
 
 ## Adding a wild pack to your node
 
-A node installed the default way has curl and tar and no git. From your node's folder, when the repository is the
-pack:
+From your node's folder, on v0.76 or later:
+
+```
+planetai packs add <id>                                  # a pack on this list, at the commit it was listed at
+planetai packs add <owner>/<repo>[/<folder>][@<ref>]      # any pack on GitHub; a branch or tag is pinned to its commit
+planetai restart
+```
+
+It fetches the pack with curl and tar (a node installed the default way has no git), writes where it came from and at
+which commit to `packs/<id>/.wild`, and runs `planetai packs install`. It never replaces a core pack. It says at once
+if the pack is written for a newer node than yours. `planetai packs` lists core and wild apart. Running it again
+updates the pack; deleting `packs/<id>` and restarting removes it. `planetai update` leaves a wild pack alone, and
+stops before it would overwrite one that a release has made core.
+
+On a node older than v0.76, do the same by hand. When the repository is the pack:
 
 ```
 mkdir packs/<id>
@@ -41,15 +54,26 @@ planetai packs install      # the settings it needs into .env, its Python librar
 planetai restart
 ```
 
-When the pack is one folder of a bigger repository, extract just that folder. For a pack hosted here:
+For a pack hosted here, extract just its folder:
 
 ```
 curl -fsSL https://codeload.github.com/fabcity/planetai-wild-packs/tar.gz/main | tar xz -C packs --strip-components=2 planetai-wild-packs-main/packs/<id>
 ```
 
 Use the `commit` from the pack's entry rather than `main` when there is one: that is the version that was checked.
-With a commit, the folder inside the archive is `<repo>-<commit>/...`. `planetai update` leaves a wild pack alone.
-A `planetai packs add` command that does all of this is next on the node's list.
+With a commit, the folder inside the archive is `<repo>-<commit>/...`.
+
+## What a wild pack can carry
+
+Everything a pack can, as [docs/PACKS.md](https://github.com/fabcity/planetai-node/blob/main/docs/PACKS.md) describes:
+rules and Index cells, an adapter for a new source, and since v0.76:
+
+- **readouts on an issue**: numbers a pack adds to Air, Heat, Coast or Land, shown in Figures and, on a context issue,
+  in its sentence. It adds; it never changes an issue's line, distances or sentences.
+- **a declared section of the dashboard**: a band on Now, and columns on the wall if you ask, drawn with the page's
+  own readout cards. A wild pack ships no code for the page.
+- **`requires: { node: ">=0.76" }`**: a node that does not match leaves the pack out and says why. Declare it when
+  your pack uses readouts or a section, because an older node ignores both without a word.
 
 ## Listing a pack
 
