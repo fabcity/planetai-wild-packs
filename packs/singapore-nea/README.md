@@ -59,3 +59,7 @@ cluster is where cases were notified, not where mosquitoes are. PSI is a 24-hour
 responses (see the test's header for how to replace them with captures).
 
 Data: NEA and PUB via data.gov.sg, Singapore Open Data Licence.
+
+## Licence
+
+Code: Apache-2.0, as planetai-node. Data: National Environment Agency and PUB datasets on data.gov.sg, under the [Singapore Open Data Licence v1.0](https://data.gov.sg/open-data-licence): attribution is required and NEA does not endorse this pack. The attribution text is in `pack.yaml`.

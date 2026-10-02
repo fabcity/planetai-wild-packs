@@ -62,3 +62,7 @@ Not a `live` cell, and no cell at all: the number is a satellite's, not somethin
 sector arithmetic, the 24-hour and confidence filters, and that the key never appears in an error.
 
 Data: NASA FIRMS / LANCE, free with attribution.
+
+## Licence
+
+Code: Apache-2.0, as planetai-node. Data: NASA FIRMS / LANCE active-fire detections, free to use with attribution (the text is in `pack.yaml`). A free MAP_KEY from NASA is needed; it is yours and is never logged by this pack.

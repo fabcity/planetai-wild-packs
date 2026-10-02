@@ -37,3 +37,7 @@ Some devices (for example IR/LCD remotes that carry a sensor) answer `function n
 A room marked secondary (`TUYA_SECONDARY`) is drawn but is not the house's number, and raises no heat alert. That needs
 the node's secondary-room support (in planetai-node after v0.75.8). On a node without it the pack still reads and draws
 every room; every room then counts toward the house's heat.
+
+## Licence
+
+Code: Apache-2.0, as planetai-node. It reads only your own devices through the Tuya Cloud API, under your own Tuya developer account and its terms; no data is redistributed.

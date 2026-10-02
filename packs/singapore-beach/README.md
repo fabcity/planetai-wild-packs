@@ -29,3 +29,7 @@ readout; another beach in `BEACH_AREAS` gets a sensor, rules and Figures rows on
 
 **Tests:** `python3 packs/singapore-beach/tests/test_singapore_beach.py` (offline; payload shape read from a live response, invented bands for the
 Band 2, Band 3 and advisory branches).
+
+## Licence
+
+Code: Apache-2.0, as planetai-node. Data: National Environment Agency beach water-quality information (nea.gov.sg), under the [Singapore Open Data Licence v1.0](https://data.gov.sg/open-data-licence): attribution is required and NEA does not endorse this pack. The attribution text is in `pack.yaml`.
