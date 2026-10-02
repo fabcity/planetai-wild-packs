@@ -1,0 +1,22 @@
+name: check
+on:
+  push:
+  pull_request:
+  # Every Monday as well: this checks wild packs against planetai-node's main, which moves without a commit here.
+  # A green badge from a month ago says nothing about today's node.
+  schedule: [{ cron: "17 6 * * 1" }]
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with: { repository: fabcity/planetai-node, ref: main, path: node }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      # What a pack's tests may use: the standard library, PyYAML, and duckdb for replaying rule SQL.
+      - run: pip install pyyaml sqlglot duckdb
+      - run: python3 tools/test_check.py
+      - run: python3 tools/check.py --node node
