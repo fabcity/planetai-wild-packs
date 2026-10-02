@@ -1,1 +1,46 @@
-[]
+[
+  {
+    "id": "singapore-nea",
+    "name": "Singapore NEA and PUB open data",
+    "source": "fabcity/planetai-wild-packs/packs/singapore-nea",
+    "author": "saadcaffeine (Saad Chinoy), Singapore node",
+    "reads": "NEA and PUB real-time and forecast data from data.gov.sg: PSI, PM2.5, temperature, humidity, rain, wind, UV, WBGT, flood alerts, dengue clusters, forecasts",
+    "kind": "code",
+    "licence": "Apache-2.0 (code); data under its publisher's licence, see pack.yaml attribution",
+    "tested_with": "v0.75.8",
+    "status": "listed"
+  },
+  {
+    "id": "singapore-beach",
+    "name": "Singapore beach water quality",
+    "source": "fabcity/planetai-wild-packs/packs/singapore-beach",
+    "author": "saadcaffeine (Saad Chinoy), Singapore node",
+    "reads": "NEA weekly Enterococcus bands for the beaches you choose, from nea.gov.sg",
+    "kind": "code",
+    "licence": "Apache-2.0 (code); data under its publisher's licence, see pack.yaml attribution",
+    "tested_with": "v0.75.8",
+    "status": "listed"
+  },
+  {
+    "id": "fire-smoke",
+    "name": "Fire and smoke",
+    "source": "fabcity/planetai-wild-packs/packs/fire-smoke",
+    "author": "saadcaffeine (Saad Chinoy), Singapore node",
+    "reads": "NASA FIRMS satellite fire detections within 500 km, by compass sector, and rules for when the wind comes from them",
+    "kind": "code",
+    "licence": "Apache-2.0 (code); data under its publisher's licence, see pack.yaml attribution",
+    "tested_with": "v0.75.8",
+    "status": "listed"
+  },
+  {
+    "id": "tuya-indoor",
+    "name": "Tuya / Smart Life room sensors",
+    "source": "fabcity/planetai-wild-packs/packs/tuya-indoor",
+    "author": "saadcaffeine (Saad Chinoy), Singapore node",
+    "reads": "Room temperature and humidity from your own Tuya / Smart Life devices through the Tuya Cloud API",
+    "kind": "code",
+    "licence": "Apache-2.0",
+    "tested_with": "v0.75.8",
+    "status": "listed"
+  }
+]
