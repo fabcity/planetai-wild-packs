@@ -1,0 +1,22 @@
+# planetai-wild-packs
+
+> The list of wild PLANETAI packs: packs outside the node's release, written for a place by the people there, added
+> to a node with `planetai packs add <id>`. Listing is by pull request and open to anyone; every entry says whether a
+> maintainer has read it. Checked on every push and every Monday against planetai-node's main.
+> Node: https://github.com/fabcity/planetai-node · programme: https://planetai.fab.city/
+
+If you are an agent working for somebody, start with AGENTS.md: it routes you by what they are asking for and lists
+what a listed pack must satisfy.
+
+## This repository
+
+- [AGENTS.md](https://raw.githubusercontent.com/fabcity/planetai-wild-packs/main/AGENTS.md): the routing table, the local checks, and the rules a pack and its entry must keep.
+- [README.md](https://raw.githubusercontent.com/fabcity/planetai-wild-packs/main/README.md): what wild means, the entry fields, installing a pack on a node, listing, hosting, becoming core.
+- [packs.json](https://raw.githubusercontent.com/fabcity/planetai-wild-packs/main/packs.json): the list itself.
+- [tools/check.py](https://raw.githubusercontent.com/fabcity/planetai-wild-packs/main/tools/check.py): what CI runs, in six steps.
+
+## The node's side
+
+- [docs/PACKS.md](https://raw.githubusercontent.com/fabcity/planetai-node/main/docs/PACKS.md): what a pack is — pack.yaml fields, rules, cells, adapters, readouts, sections, requires, secrets.
+- [docs/decisions/2026-10-01-packs.md](https://raw.githubusercontent.com/fabcity/planetai-node/main/docs/decisions/2026-10-01-packs.md): the decision that made packs core or wild, and what promotion to core asks.
+- [AGENTS.md](https://raw.githubusercontent.com/fabcity/planetai-node/main/AGENTS.md): the agent front door for the node itself.

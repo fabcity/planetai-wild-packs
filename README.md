@@ -12,6 +12,9 @@ The rules for both tiers are in the node's decision record,
 has read it. A code pack (one with an `adapter.py`) runs Python with your node's privileges, and only once you set
 `PACKS_ALLOW_CODE=1`. Read it before you turn that on.
 
+Writing or listing a pack with an AI agent? Point it at [`AGENTS.md`](AGENTS.md) or [`llms.txt`](llms.txt). `CLAUDE.md` and
+`GEMINI.md` send their tools there too. It carries the rules below in the form an agent checks against.
+
 ## The list
 
 [`packs.json`](packs.json). Empty for now.
