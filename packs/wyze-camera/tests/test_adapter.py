@@ -1,9 +1,10 @@
 """adapter.py, loaded the way the node loads it: afresh, by path, at every poll.
 Run from a node's folder: python3 packs/wyze-camera/tests/test_adapter.py"""
 import importlib.util
+import json
 import logging
-import os
 import sys
+import time
 from pathlib import Path
 from unittest.mock import patch
 
@@ -76,7 +77,8 @@ out = setup({"WYZE_BRIDGE_URL": URL, "WYZE_BRIDGE_TOKEN": KEY, "WYZE_CAMERAS": "
              "WYZE_ROLES": "motion,snapshots", "WYZE_SNAPSHOT_ON_MOTION": "1"})
 fb = FakeBridge({CAMS[0]: 0, CAMS[1]: 0}, key=KEY)
 adapter().fetch(fb)
-fb.motion[CAMS[0]] = T
+T2 = time.time() - 60
+fb.motion[CAMS[0]] = T2
 with patch.object(StoreClass, 'save_image', mock_save_image):
     try:
         adapter().fetch(fb)
@@ -84,8 +86,11 @@ with patch.object(StoreClass, 'save_image', mock_save_image):
     except RuntimeError as e:
         assert str(e) == "wyze-camera: could not write to its output folder", f"got: {str(e)}"
         clean(str(e))
+# Verify state was saved even though the poll failed
+state_after_fail = json.loads((out / "wyze-camera" / "state.json").read_text())
+assert state_after_fail["motion"][CAMS[0]] == T2, f"state not saved during failed poll: {state_after_fail}"
 # Restore and poll again with same motion time, verify no duplicate
-fb.motion[CAMS[0]] = T
+fb.motion[CAMS[0]] = T2
 assert adapter().fetch(fb) == ([], [])
 events_text = (out / "wyze-camera" / "motion.jsonl").read_text()
 assert events_text.count(CAMS[0]) == 1, "motion appended then save_state failed, but next poll should not duplicate"
