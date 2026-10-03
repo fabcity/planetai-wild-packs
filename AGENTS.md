@@ -46,6 +46,8 @@ on nobody's node without saying why.
   ignores both without a word; with `requires:` it leaves the pack out and says why.
 - **A key or token the pack needs is listed under `secrets:`** in `pack.yaml` and read from the environment. Never put
   a value in the pack, in `packs.json`, in a test or in a pull request.
+- **A script an agent may run is named under `agent_scripts:`** in `pack.yaml`. A wild pack's other scripts run only
+  from the node's own terminal (`planetai run`), never through the agent's `run_pack_script` tool.
 - **Tests** live in `<id>/tests/test_*.py`, run from a node's folder (`python3 packs/<id>/tests/test_x.py`), and use
   only the standard library, PyYAML and duckdb.
 - **The README says** where each threshold comes from, which place it was written for, what the pack does not know,
