@@ -2,7 +2,8 @@
 app/wyzebridge/web_ui.py, app/wyzebridge/wyze_stream.py):
 
   GET /api/<cam>/motion_ts  {"status": "success", "response": {...}, "value": <epoch seconds; 0 = none yet>}
-                            an unknown camera answers a JSON object with an "error" key
+                            an unknown camera answers {"status": "error", "response": "Camera not found"}
+                            (seen live on v2.10.3); older code paths answer with an "error" key
   GET /snapshot/<cam>.jpg   a fresh still from the RTSP stream
   GET /thumb/<cam>.jpg      the camera's latest thumbnail from Wyze's cloud: the event's own image
   the API key travels as an `api` header; a wrong one is a 401
@@ -46,7 +47,7 @@ class Bridge:
             raise BridgeError(BAD_ANSWER) from None
         if not isinstance(body, dict):
             raise BridgeError(BAD_ANSWER)
-        if "error" in body:
+        if "error" in body or body.get("status") == "error":
             raise BridgeError(UNKNOWN)
         value = body.get("value")
         if isinstance(value, bool) or not isinstance(value, (int, float)) or value < 0:

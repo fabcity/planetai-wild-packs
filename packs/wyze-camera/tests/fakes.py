@@ -1,7 +1,8 @@
 """Shared by the tests: a stand-in for httpx.Client talking to docker-wyze-bridge, and a clean environment.
 
 The bridge's answers follow its source (v2.10.x): GET /api/<cam>/motion_ts returns
-{"status": "success", "response": {...}, "value": <epoch seconds>}, an unknown camera returns {"error": ...},
+{"status": "success", "response": {...}, "value": <epoch seconds>}, an unknown camera returns
+{"status": "error", "response": "Camera not found", ...} (seen live on v2.10.3, 3 Oct 2026),
 a wrong key is a 401, and an image it cannot give is a 307 that is not a JPEG."""
 import os
 import sys
@@ -43,7 +44,7 @@ class FakeBridge:
         if parts[0] == "api" and len(parts) == 3 and parts[2] == "motion_ts":
             cam = parts[1]
             if cam not in self.motion:
-                return Resp(200, {"error": f"Could not find camera [{cam}]"})
+                return Resp(200, {"command": "motion_ts", "payload": "", "response": "Camera not found", "status": "error"})
             v = self.motion[cam]
             return Resp(200, {"status": "success", "response": {"motion": False, "motion_ts": v}, "value": v})
         if parts[0] in ("snapshot", "thumb") and len(parts) == 2 and parts[1].endswith(".jpg"):

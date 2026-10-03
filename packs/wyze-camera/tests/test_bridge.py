@@ -36,6 +36,7 @@ print("  0 means no motion yet, and no key means no header")
 
 raises(lambda: Bridge(FakeBridge({CAM: 1}, key=KEY), URL, "wrong").motion_ts(CAM), REFUSED)
 raises(lambda: Bridge(FakeBridge({}), URL).motion_ts(CAM), UNKNOWN)
+raises(lambda: Bridge(type("H", (), {"get": lambda *a, **k: Resp(200, {"error": "Could not find camera"})})(), URL).motion_ts(CAM), UNKNOWN)
 raises(lambda: Bridge(FakeBridge({CAM: 1}, down=True), URL).motion_ts(CAM), UNREACHABLE)
 print("  a wrong key, an unknown camera and a bridge that is down each say so, and name nothing")
 

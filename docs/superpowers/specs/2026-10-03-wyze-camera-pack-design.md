@@ -163,8 +163,9 @@ anyone at the node's terminal, or a connected agent with admin access through `r
 ## Read from the bridge's source (v2.10.x), 3 October
 
 - `GET /api/<cam>/motion_ts` answers `{"status": "success", "response": {"motion": …, "motion_ts": …}, "value": <epoch
-  seconds, float>}`; `value` is 0 until the first motion. An unknown camera answers a JSON object with an `error`
-  key. (`app/wyzebridge/wyze_stream.py`, `send_cmd`.)
+  seconds, float>}`; `value` is 0 until the first motion. An unknown camera answers `{"status": "error",
+  "response": "Camera not found"}` on v2.10.3, seen live on 3 Oct 2026; the source also has paths that answer with an
+  `error` key, and the pack treats both as unknown. (`app/wyzebridge/wyze_stream.py`, `send_cmd`.)
 - The API key travels as an `api` header or `?api=` (`app/wyzebridge/web_ui.py`, `verify_password`); a wrong key is
   a 401. The pack sends the header, so the key never sits in a URL.
 - `GET /snapshot/<cam>.jpg` is a fresh still from the RTSP stream; `GET /thumb/<cam>.jpg` is the camera's latest
