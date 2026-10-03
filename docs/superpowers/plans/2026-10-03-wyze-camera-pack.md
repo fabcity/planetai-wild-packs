@@ -21,7 +21,7 @@
 - No exception message and no log line names a camera, the bridge address or the token. Only the three scripts, run on the node's terminal, print camera names.
 - The bridge's API key is sent as the `api` header, never in a URL.
 - Every HTTP call has a timeout (10 s).
-- `requires:` names the first node release that contains planetai-node commit `f8fcc81` (pack `secrets:`).
+- `requires: { node: ">=0.76" }`. `secrets: [WYZE_BRIDGE_TOKEN]` stays in `pack.yaml`: a v0.76 node ignores it and shows the token to admin-token holders and a connected agent, which the README says; a node with planetai-node commit `f8fcc81` masks it.
 - Python 3.12 syntax is fine (it runs in the node's container), but no third-party import in `wyzecam/` or `adapter.py`.
 
 ---
@@ -165,7 +165,7 @@ Expected: FAIL with `ModuleNotFoundError: No module named 'wyzecam'`.
 
 - [ ] **Step 3: Write the manifest and the settings module**
 
-`packs/wyze-camera/pack.yaml` (the `requires:` value is settled in Task 7, Step 4; `>=0.76` is the placeholder floor until then and must not ship):
+`packs/wyze-camera/pack.yaml`:
 
 ```yaml
 id: wyze-camera
@@ -1330,6 +1330,10 @@ planetai run wyze-camera snapshot [camera]
 - Motion within one poll is one event. Wyze's free plan already spaces events about five minutes apart.
 - A camera that has never reported motion reads "never": the bridge cannot say whether its `MOTION_API` is on.
 - It depends on Wyze's cloud and on docker-wyze-bridge, whose last release is v2.10.3 (September 2024).
+- **On node v0.76 the bridge token is not masked.** The pack lists it as a secret, but v0.76 does not know that
+  field yet: Set up shows the token to anyone holding the admin token, and a connected AI agent can read it through
+  its settings tool. The first release after v0.76 masks it, with no change to the pack. Until you update, keep
+  agents disconnected, or protect the bridge another way.
 - The design, and why: `docs/superpowers/specs/2026-10-03-wyze-camera-pack-design.md` in fabcity/planetai-wild-packs.
 ````
 
@@ -1376,15 +1380,13 @@ python3 tools/check.py --node "$NODE"
 Expected: `check.py: the index rules hold`, then each step of `check.py` printed with two spaces, the last two
 `6 pack test file(s) pass` and `ok`.
 
-- [ ] **Step 4: Set `requires:` to the release that carries pack secrets**
+- [ ] **Step 4: Name the release that masks the token, if it exists yet**
 
 Run: `git -C "/Users/tomasdiez/Documents/Claude/Projects/FAB CITY/planetai-node-main" fetch -q --tags origin && git -C "/Users/tomasdiez/Documents/Claude/Projects/FAB CITY/planetai-node-main" tag --contains f8fcc81 | sort -V | head -1`
 
-- If it prints a tag (say `v0.77`), set `requires: { node: ">=0.77" }` in `pack.yaml`, and `tested_with` in
-  `packs.json` to that tag, then rerun Step 3.
-- If it prints nothing, no release carries pack secrets yet. Stop here and tell Tomas: the pack must not ship before
-  that release, or its token would show in plain text in Set up on every node running it. Everything else may be
-  committed; the pull request waits.
+- If it prints a tag (say `v0.77`), change "The first release after v0.76" in the README's last section to name it
+  ("Node v0.77 masks it").
+- If it prints nothing, leave the README as written. `requires:` stays `>=0.76` either way.
 
 - [ ] **Step 5: Commit**
 

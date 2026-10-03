@@ -29,9 +29,11 @@ copy of the storage and privacy rules below.
   webhook or an MQTT message; that is a core change.
 - **A wild pack, `wyze-camera`, hosted in fabcity/planetai-wild-packs**, installed with `planetai packs add
   wyze-camera`. Licence Apache-2.0, like the node today.
-- **The bridge token is a secret.** It is listed under `secrets:` in `pack.yaml`, so Set up masks it like the node's
-  own tokens (fabcity/planetai-node#167). The pack requires the node release that ships that change, so it never runs
-  on a node that would show the token in plain text.
+- **The bridge token is a secret, and the pack works from v0.76.** The token is listed under `secrets:` in `pack.yaml`,
+  so a node with fabcity/planetai-node#167 masks it in Set up like its own tokens. Tomas chose to support v0.76
+  onwards rather than wait for that release (3 October): a v0.76 node ignores `secrets:`, so there the token is shown
+  to anyone holding the admin token and to a connected agent's settings tool, and the README says so. The same pack
+  masks it as soon as the node updates.
 
 ## 1. The pack
 
@@ -59,8 +61,7 @@ copy of the storage and privacy rules below.
 
 - **The Wyze account never touches the node.** The email, password and Wyze API key go only into the bridge's own
   settings. The node knows the bridge's local address, the camera names and, optionally, the bridge token.
-- `requires:` the first node release that carries `secrets:` (fabcity/planetai-node#167), which is also after
-  `planetai packs add` (v0.76).
+- `requires: { node: ">=0.76" }`, the first release with `planetai packs add`.
 
 ## 2. How events flow, and where they live
 
@@ -178,4 +179,4 @@ anyone at the node's terminal can run whether or not the role is on.
 - That `/thumb/<cam>.jpg` really is the latest motion event's image on a live camera, not just a periodic thumbnail.
 - That docker-wyze-bridge is still maintained and still supports the v3 and v4 with `MOTION_API`. If it is not, the
   pack has nothing to read, and that is reported before any code is written.
-- Which node release carries `secrets:` (fabcity/planetai-node#167), for `requires:`.
+- Which node release carries `secrets:` (fabcity/planetai-node#167), for the README's "update to mask the token" line.
