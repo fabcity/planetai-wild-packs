@@ -9,7 +9,7 @@ and every rule about what a pack is, lives in [fabcity/planetai-node](https://gi
 
 | the person says | read | then do this |
 |---|---|---|
-| "I want my node to use pack X", "how do I install a wild pack?" | README, *Adding a wild pack to your node* | On the node, from its folder: `planetai packs add <id>` (v0.76 or later), then `planetai restart`. Never `git clone` on a node: a default install has no git. |
+| "I want my node to use pack X", "how do I install a wild pack?" | README, *Adding a wild pack to your node* | On the node, from its folder (v0.76 or later): `planetai packs add <owner>/<repo>[/<folder>]`, or `planetai packs add <id>` for a pack in `packs.json` (read it first: it may be empty), then `planetai restart`. Never `git clone` on a node: a default install has no git. |
 | "help me write a pack for my place" | the node's [`docs/PACKS.md`](https://github.com/fabcity/planetai-node/blob/main/docs/PACKS.md) | Write it in the author's own repository, or as `packs/<id>/` here. Start from a core pack of the same kind in the node's `packs/`, not from a blank file. |
 | "list my pack", "publish it so other nodes can use it" | README, *Listing a pack* | One pull request adding one entry to `packs.json`, pinned to a full 40-character commit. Run the checks below before you open it. |
 | "host it here, I don't want my own repo" | README, *Hosting a pack here* | Same pull request adds `packs/<id>/` and a CODEOWNERS line naming the author. Leave `commit` out of a hosted entry. |
