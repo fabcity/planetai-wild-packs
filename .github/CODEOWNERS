@@ -4,3 +4,5 @@
 # A pack hosted here belongs to its author. Add a line with your folder and your handle in the pull request that
 # adds the pack, and a change to that folder then needs your review. Hosting a pack here is not adopting it.
 # /packs/<id>/          @<author>
+
+/packs/wyze-camera/     @tomasdiez
