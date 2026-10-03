@@ -1258,7 +1258,6 @@ git commit -m "wyze-camera: status, events and snapshot scripts"
 - Create: `packs/wyze-camera/README.md`
 - Modify: `packs.json`
 - Modify: `.github/CODEOWNERS`
-- Modify: `packs/wyze-camera/pack.yaml` (the `requires:` line only)
 
 **Interfaces:**
 - Consumes: everything above; `tools/check.py` and `tools/test_check.py` in this repository; a checkout of fabcity/planetai-node's `main`.
@@ -1391,7 +1390,7 @@ Run: `git -C "/Users/tomasdiez/Documents/Claude/Projects/FAB CITY/planetai-node-
 - [ ] **Step 5: Commit**
 
 ```bash
-git add packs/wyze-camera/README.md packs.json .github/CODEOWNERS packs/wyze-camera/pack.yaml
+git add packs/wyze-camera/README.md packs.json .github/CODEOWNERS
 git commit -m "wyze-camera: README, the list entry, its code owner"
 ```
 
