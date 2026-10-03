@@ -1,0 +1,31 @@
+id: wyze-camera
+name: Wyze cameras
+description: >-
+  Wyze cameras through docker-wyze-bridge: records motion events and saves snapshots on this node's own disk, in
+  out/wyze-camera. It gives the node no sensors and no readings, so none of it reaches the database, the daily export,
+  the upstream aggregates or any API.
+author: Tomas Diez (Fab City Foundation)
+version: 0.1.0
+requires: { node: ">=0.76" }
+kind: code
+env:
+  - "# wyze-camera: the bridge's local address, e.g. http://192.168.1.20:5000"
+  - "WYZE_BRIDGE_URL="
+  - "# wyze-camera: the bridge's API key (WB_API in its log), if its API is protected"
+  - "WYZE_BRIDGE_TOKEN="
+  - "# wyze-camera: the cameras to follow, comma-separated, as the bridge names them"
+  - "WYZE_CAMERAS="
+  - "# wyze-camera: which roles run at each poll: motion, snapshots"
+  - "WYZE_ROLES=motion"
+  - "# wyze-camera: days to keep motion events and snapshots"
+  - "WYZE_KEEP_DAYS=30"
+  - "# wyze-camera: 1 saves an image with each new motion event (needs the motion and snapshots roles)"
+  - "WYZE_SNAPSHOT_ON_MOTION=0"
+  - "# wyze-camera: minutes between scheduled snapshots, 0 is off (needs the snapshots role)"
+  - "WYZE_SNAPSHOT_EVERY=0"
+  - "# wyze-camera: the most the snapshot folder may hold, in MB; the oldest go first"
+  - "WYZE_SNAPSHOT_MAX_MB=500"
+secrets: [WYZE_BRIDGE_TOKEN]
+attribution: >-
+  Motion detection is Wyze's own, read through docker-wyze-bridge (github.com/mrlt8/docker-wyze-bridge). Not endorsed
+  by Wyze.
