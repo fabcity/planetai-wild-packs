@@ -1,1 +1,13 @@
-[]
+[
+  {
+    "id": "wyze-camera",
+    "name": "Wyze cameras",
+    "source": "fabcity/planetai-wild-packs/packs/wyze-camera",
+    "author": "Tomas Diez (Fab City Foundation)",
+    "reads": "Wyze motion times and stills from docker-wyze-bridge on the local network",
+    "kind": "code",
+    "licence": "Apache-2.0",
+    "tested_with": "v0.76",
+    "status": "listed"
+  }
+]
