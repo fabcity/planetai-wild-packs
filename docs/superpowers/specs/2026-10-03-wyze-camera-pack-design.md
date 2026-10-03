@@ -88,8 +88,9 @@ copy of the storage and privacy rules below.
 - **Missing settings:** with no bridge address or no camera names, the pack idles and says so once in the log.
 - **Bridge down:** the pack raises, so it appears as a failing source in `planetai status` and `planetai doctor`. If
   one camera fails the others are still checked; it raises only when every camera fails.
-- **Motion API off:** if the bridge answers but its motion API is disabled, the error says to set `MOTION_API=True`
-  in the bridge.
+- **Motion API off:** the bridge cannot be asked whether `MOTION_API` is on; with it off, `motion_ts` answers 0
+  forever. So this is not an error the pack can raise. The status script says "never" for a camera that has reported
+  no motion and suggests checking `MOTION_API=True` in the bridge. (Corrected from the bridge's source, 3 October.)
 - **Errors name no camera and no address.** Source errors appear in the node's status, which can be visible beyond
   the machine, and room names never leave it. An error reads like "wyze-camera: 1 of 2 cameras unknown to the
   bridge"; the status script names them locally. The token never appears in any message.
@@ -158,11 +159,23 @@ anyone at the node's terminal can run whether or not the role is on.
   the pack's card under Packs holds its settings.
 - The second pack discussed the same day, posting certain alerts to X, is a separate design.
 
+## Read from the bridge's source (v2.10.x), 3 October
+
+- `GET /api/<cam>/motion_ts` answers `{"status": "success", "response": {"motion": …, "motion_ts": …}, "value": <epoch
+  seconds, float>}`; `value` is 0 until the first motion. An unknown camera answers a JSON object with an `error`
+  key. (`app/wyzebridge/wyze_stream.py`, `send_cmd`.)
+- The API key travels as an `api` header or `?api=` (`app/wyzebridge/web_ui.py`, `verify_password`); a wrong key is
+  a 401. The pack sends the header, so the key never sits in a URL.
+- `GET /snapshot/<cam>.jpg` is a fresh still from the RTSP stream; `GET /thumb/<cam>.jpg` is the camera's latest
+  thumbnail from Wyze's cloud, which is what the pack saves as an event's own image. An image the bridge cannot give
+  is a 307 to `/static/notavailable.svg` (`app/frontend.py`).
+- The last release is v2.10.3 (September 2024); the repository had commits in September 2026 and is not archived.
+
 ## To verify during implementation
 
 - The exact response body of `/api/{cam}/motion_ts` and `/api/{cam}/motion`, and the timestamp's unit and zone.
 - How the bridge's REST API expects its key when it is protected.
-- The bridge's snapshot endpoint, and whether its motion events carry Wyze's own event image the pack can save.
+- That `/thumb/<cam>.jpg` really is the latest motion event's image on a live camera, not just a periodic thumbnail.
 - That docker-wyze-bridge is still maintained and still supports the v3 and v4 with `MOTION_API`. If it is not, the
   pack has nothing to read, and that is reported before any code is written.
 - Which node release carries `secrets:` (fabcity/planetai-node#167), for `requires:`.
