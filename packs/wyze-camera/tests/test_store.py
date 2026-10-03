@@ -37,6 +37,15 @@ assert len(s.events()) == 2, "a broken line is skipped, not fatal"
 assert all(json.loads(line)["camera"] for line in s.log_file.read_text().splitlines()[:2])
 print("  the log appends, prunes past keep_days, filters by time and skips a broken line")
 
+s.add_events([ev("kitchen", T - 20 * DAY)], keep_days=60, now=T)
+before = s.log_file.stat().st_mtime_ns
+s.prune_events(30, T)
+assert s.log_file.stat().st_mtime_ns == before, "nothing old: the log is not rewritten"
+s.prune_events(15, T)
+assert [e["motion_at"] for e in s.events()] == [iso(T - 10 * DAY), iso(T - 60)]
+Store(setup({}) / "wyze-camera").prune_events(30, T)
+print("  pruning the log alone drops what is old, and touches nothing when nothing is")
+
 p1 = s.save_image("Kitchen Cam", b"x" * 400_000, "manual", T - 40 * DAY)
 p2 = s.save_image("Kitchen Cam", b"y" * 700_000, "schedule", T - 2 * DAY)
 p3 = s.save_image("porch", b"z" * 600_000, "motion", T - DAY)

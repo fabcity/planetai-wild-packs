@@ -61,9 +61,21 @@ class Store:
                 out.append(e)
         return out
 
+    def _rewrite_log(self, events: list[dict]) -> None:
+        _write(self.log_file, "".join(json.dumps(e, sort_keys=True) + "\n" for e in events))
+
     def add_events(self, events: list[dict], keep_days: int, now: float) -> None:
-        kept = self.events(since=now - keep_days * 86400) + list(events)
-        _write(self.log_file, "".join(json.dumps(e, sort_keys=True) + "\n" for e in kept))
+        self._rewrite_log(self.events(since=now - keep_days * 86400) + list(events))
+
+    def prune_events(self, keep_days: int, now: float) -> None:
+        """Drop events past keep_days. The file is only rewritten when something in it is old (or not an event)."""
+        try:
+            n = len(self.log_file.read_text().splitlines())
+        except FileNotFoundError:
+            return
+        kept = self.events(since=now - keep_days * 86400)
+        if len(kept) < n:
+            self._rewrite_log(kept)
 
     def save_image(self, cam: str, data: bytes, trigger: str, now: float) -> Path:
         d = self.snaps / slug(cam)

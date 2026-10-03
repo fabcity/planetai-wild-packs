@@ -17,7 +17,7 @@ def new_context(cfg, bridge, store, now: float) -> dict:
 
 def motion(ctx: dict) -> None:
     cfg, state, now = ctx["cfg"], ctx["state"], ctx["now"]
-    new = []
+    new, seen = [], {}
     for cam in cfg.cameras:
         try:
             ts = ctx["bridge"].motion_ts(cam)
@@ -30,9 +30,10 @@ def motion(ctx: dict) -> None:
             state["motion"][cam] = ts             # the first look is a starting point, never an event
         elif ts > last:
             new.append({"camera": cam, "motion_at": iso(ts), "seen_at": iso(now)})
-            state["motion"][cam] = ts
+            seen[cam] = ts
     if new:
         ctx["store"].add_events(new, cfg.keep_days, now)
+    state["motion"].update(seen)              # only once the log has them: a failed write is retried, not lost
     ctx["new_motion"] = new
 
 
@@ -52,16 +53,12 @@ def _save(ctx: dict, cam: str, kind: str, trigger: str, fallback: tuple[str, str
 def snapshots(ctx: dict) -> None:
     cfg, state, now = ctx["cfg"], ctx["state"], ctx["now"]
     moved = {e["camera"] for e in ctx.get("new_motion", [])}
-    saved = False
     for cam in cfg.cameras:
         if cfg.snap_on_motion and cam in moved:
-            saved |= _save(ctx, cam, "thumb", "motion", fallback=("snapshot", "motion-at-poll"))
+            _save(ctx, cam, "thumb", "motion", fallback=("snapshot", "motion-at-poll"))
         if cfg.snap_every_min and now - state["schedule"].get(cam, 0) >= cfg.snap_every_min * 60:
             if _save(ctx, cam, "snapshot", "schedule"):
                 state["schedule"][cam] = now
-                saved = True
-    if saved:
-        ctx["store"].prune_images(cfg.keep_days, cfg.snap_max_mb, now)
 
 
 ROLES = {"motion": motion, "snapshots": snapshots}

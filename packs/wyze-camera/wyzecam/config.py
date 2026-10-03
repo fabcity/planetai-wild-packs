@@ -57,7 +57,7 @@ def load() -> Config:
     return Config(
         url=os.getenv("WYZE_BRIDGE_URL", "").strip().rstrip("/"),
         token=os.getenv("WYZE_BRIDGE_TOKEN", "").strip(),
-        cameras=tuple(c.strip() for c in os.getenv("WYZE_CAMERAS", "").split(",") if c.strip()),
+        cameras=tuple(dict.fromkeys(c.strip() for c in os.getenv("WYZE_CAMERAS", "").split(",") if c.strip())),
         roles=tuple(r for r in ROLES if r in listed),
         keep_days=_int("WYZE_KEEP_DAYS", 30, 1),
         snap_on_motion=os.getenv("WYZE_SNAPSHOT_ON_MOTION", "0").strip() == "1",

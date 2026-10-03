@@ -1,5 +1,6 @@
 """wyzecam.config: the pack's settings, read from the environment the node gives a pack.
 Run from a node's folder: python3 packs/wyze-camera/tests/test_config.py"""
+import os
 import sys
 from pathlib import Path
 
@@ -20,6 +21,9 @@ setup({"WYZE_BRIDGE_URL": "http://192.168.1.20:5000/", "WYZE_CAMERAS": " kitchen
        "WYZE_SNAPSHOT_EVERY": "15", "WYZE_SNAPSHOT_MAX_MB": "50", "WYZE_BRIDGE_TOKEN": " tok "})
 c = config.load()
 assert c.ready and c.url == "http://192.168.1.20:5000" and c.cameras == ("kitchen", "porch")
+assert config.load().cameras == ("kitchen", "porch")
+os.environ["WYZE_CAMERAS"] = "kitchen,porch,kitchen"
+assert config.load().cameras == ("kitchen", "porch"), "a camera listed twice is looked at once, in first-listed order"
 assert c.roles == ("motion", "snapshots"), "roles run in the pack's order, whatever order they are listed in"
 assert (c.keep_days, c.snap_on_motion, c.snap_every_min, c.snap_max_mb, c.token) == (7, True, 15, 50, "tok")
 print("  settings are trimmed, cameras split, roles in the pack's own order")

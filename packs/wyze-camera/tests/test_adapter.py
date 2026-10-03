@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from fakes import PACK, FakeBridge, setup  # noqa: E402
 
 URL, KEY, CAMS = "http://10.9.8.7:5000", "tok-SECRET", ("kitchen-secret-room", "bedroom-two")
-T = 1759475565.0
+T = time.time() - 600  # inside the keep window: every poll prunes
 said = []
 logging.getLogger("planetai.pack.wyze_camera").addHandler(
     type("H", (logging.Handler,), {"emit": lambda self, r: said.append(r.getMessage())})())
@@ -95,4 +95,49 @@ assert adapter().fetch(fb) == ([], [])
 events_text = (out / "wyze-camera" / "motion.jsonl").read_text()
 assert events_text.count(CAMS[0]) == 1, "motion appended then save_state failed, but next poll should not duplicate"
 print("  a write failure names nothing and does not duplicate events on retry")
+
+# a failed log write loses no event: the poll fails, the next one logs it
+from wyzecam.store import Store as S2, iso as iso2, stamp as stamp2
+
+def mock_add_events(self, events, keep_days, now):
+    raise OSError(f"Permission denied: /app/out/wyze-camera/motion.jsonl ({events[0]['camera']})")
+
+out = setup({"WYZE_BRIDGE_URL": URL, "WYZE_BRIDGE_TOKEN": KEY, "WYZE_CAMERAS": ",".join(CAMS)})
+fb = FakeBridge({CAMS[0]: 0, CAMS[1]: 0}, key=KEY)
+adapter().fetch(fb)
+fb.motion[CAMS[0]] = time.time() - 60
+with patch.object(S2, "add_events", mock_add_events):
+    try:
+        adapter().fetch(fb)
+        raise AssertionError("a failed log write must fail the poll")
+    except RuntimeError as e:
+        assert str(e) == "wyze-camera: could not write to its output folder", str(e)
+        clean(str(e))
+assert adapter().fetch(fb) == ([], [])
+lines = (out / "wyze-camera" / "motion.jsonl").read_text().splitlines()
+assert len(lines) == 1 and CAMS[0] in lines[0], lines
+print("  a failed log write is not saved as seen: the next poll logs the event, once")
+
+# keep_days holds on every poll, even with the motion role on and nothing new
+out = setup({"WYZE_BRIDGE_URL": URL, "WYZE_CAMERAS": ",".join(CAMS), "WYZE_ROLES": "motion"})
+st, now = S2(out / "wyze-camera"), time.time()
+st.add_events([{"camera": "x", "motion_at": iso2(now - 90 * 86400), "seen_at": iso2(now - 90 * 86400)},
+               {"camera": "x", "motion_at": iso2(now - 3600), "seen_at": iso2(now - 3600)}], 365, now)
+old = st.save_image("x", b"old", "manual", now - 90 * 86400)
+new = st.save_image("x", b"new", "manual", now - 3600)
+fb = FakeBridge({CAMS[0]: 0, CAMS[1]: 0})
+assert adapter().fetch(fb) == ([], [])
+assert [e["motion_at"] for e in st.events()] == [iso2(now - 3600)] and st.images() == [new] and not old.exists()
+print("  one quiet poll prunes the old log line and the old image")
+
+# a state file that cannot be read fails the poll the same way, naming no path
+def no_state(self):
+    raise PermissionError(13, "Permission denied", str(self.state_file))
+with patch.object(S2, "load_state", no_state):
+    try:
+        adapter().fetch(fb)
+        raise AssertionError("an unreadable state file must fail the poll")
+    except RuntimeError as e:
+        assert str(e) == "wyze-camera: could not write to its output folder" and "/" not in str(e).split(":", 1)[1], str(e)
+print("  an unreadable state file gives the same constant message")
 print("adapter: ok")

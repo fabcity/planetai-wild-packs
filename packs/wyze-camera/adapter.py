@@ -26,17 +26,22 @@ def fetch(hc):
         config.say_once("wyze-camera: idle until WYZE_BRIDGE_URL and WYZE_CAMERAS are set")
         return [], []
     store = Store(cfg.out)
-    ctx = new_context(cfg, Bridge(hc, cfg.url, cfg.token), store, time.time())
+    ctx = None
     try:
+        ctx = new_context(cfg, Bridge(hc, cfg.url, cfg.token), store, time.time())
         for name in cfg.roles:
             ROLES[name](ctx)
+        # Every poll, whichever roles ran: keep_days and the size cap hold even when nothing new is written.
+        store.prune_events(cfg.keep_days, ctx["now"])
+        store.prune_images(cfg.keep_days, cfg.snap_max_mb, ctx["now"])
     except OSError:
         raise RuntimeError("wyze-camera: could not write to its output folder") from None
     finally:
-        try:
-            store.save_state(ctx["state"])
-        except OSError:
-            raise RuntimeError("wyze-camera: could not write to its output folder") from None
+        if ctx:
+            try:
+                store.save_state(ctx["state"])
+            except OSError:
+                raise RuntimeError("wyze-camera: could not write to its output folder") from None
     failures = ctx["failures"]
     if failures and not ctx["answered"]:
         # A message the node's status shows, which can be seen beyond this machine: reasons only, never a name.
