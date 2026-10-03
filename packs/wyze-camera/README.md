@@ -43,11 +43,14 @@ camera's name (for `WYZE_CAMERAS`) and a live view.
 
 ```
 planetai packs add wyze-camera
+planetai restart
 ```
 
-Then in Set up, Packs, Wyze cameras (or in `.env`): `WYZE_BRIDGE_URL`, `WYZE_BRIDGE_TOKEN`, `WYZE_CAMERAS`, and
-optionally `WYZE_ROLES` (`motion`, `snapshots`), `WYZE_SNAPSHOT_ON_MOTION`, `WYZE_SNAPSHOT_EVERY` (minutes),
-`WYZE_KEEP_DAYS` (30) and `WYZE_SNAPSHOT_MAX_MB` (500). It is a code pack, so the node needs `PACKS_ALLOW_CODE=1`.
+A node that sets `PACKS_ENABLED` must also add `wyze-camera` to it. Then in Set up, Packs, Wyze cameras (or in `.env`):
+`WYZE_BRIDGE_URL`, `WYZE_BRIDGE_TOKEN`, `WYZE_CAMERAS`, and optionally `WYZE_ROLES` (`motion`, `snapshots`),
+`WYZE_SNAPSHOT_ON_MOTION`, `WYZE_SNAPSHOT_EVERY` (minutes), `WYZE_KEEP_DAYS` (30) and `WYZE_SNAPSHOT_MAX_MB` (500).
+The two snapshot settings only act when `WYZE_ROLES` includes `snapshots`, for example `WYZE_ROLES=motion,snapshots`.
+It is a code pack, so the node needs `PACKS_ALLOW_CODE=1`.
 
 ```
 planetai run wyze-camera status
@@ -64,4 +67,7 @@ planetai run wyze-camera snapshot [camera]
   field yet: Set up shows the token to anyone holding the admin token, and a connected AI agent can read it through
   its settings tool. The first release after v0.76 masks it, with no change to the pack. Until you update, keep
   agents disconnected, or protect the bridge another way.
+- **A connected agent with admin access can run the three scripts.** Through the node's `run_pack_script` tool it can
+  run `status`, `events` and `snapshot`, and read what they print: camera names, motion history and the bridge
+  address. `snapshot` takes a photo. Keep agents disconnected, or give them no admin access, if that is too much.
 - The design, and why: `docs/superpowers/specs/2026-10-03-wyze-camera-pack-design.md` in fabcity/planetai-wild-packs.

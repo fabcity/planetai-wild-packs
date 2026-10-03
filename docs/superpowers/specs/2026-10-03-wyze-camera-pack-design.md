@@ -85,7 +85,7 @@ copy of the storage and privacy rules below.
 - `planetai run wyze-camera status`: whether the bridge answers, and per camera its last motion time, its event count
   over the last day and week, and its snapshot count and disk use.
 - `planetai run wyze-camera events --hours 24`: the events themselves.
-- Both read the local files. They are the only way anyone sees the events, and only from the node's own terminal.
+- Both read the local files. They are the only way anyone sees the events: from the node's own terminal, or through the node's `run_pack_script` tool by a connected agent with admin access, which can read their output (camera names, motion history, the bridge address).
 - **Missing settings:** with no bridge address or no camera names, the pack idles and says so once in the log.
 - **Bridge down:** the pack raises, so it appears as a failing source in `planetai status` and `planetai doctor`. If
   one camera fails the others are still checked; it raises only when every camera fails.
@@ -118,7 +118,7 @@ copy of the storage and privacy rules below.
 
 Snapshots are the `snapshots` role. All three triggers work as a wild pack, since none needs anything on the page.
 The role runs the two automatic triggers at each poll when it is listed in `WYZE_ROLES`; the manual one is a script
-anyone at the node's terminal can run whether or not the role is on.
+anyone at the node's terminal, or a connected agent with admin access through `run_pack_script`, can run whether or not the role is on.
 
 - **One store:** `out/wyze-camera/snapshots/<camera>/<UTC time>-<trigger>.jpg`, the trigger being `manual`, `motion`
   or `schedule`. Like the motion log, nothing in the node serves, backs up or exports this folder. The images are
