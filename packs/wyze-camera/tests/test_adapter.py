@@ -2,6 +2,7 @@
 Run from a node's folder: python3 packs/wyze-camera/tests/test_adapter.py"""
 import importlib.util
 import logging
+import os
 import sys
 from pathlib import Path
 from unittest.mock import patch
@@ -67,13 +68,12 @@ print("  every request failing raises, so the node shows a failing source; nothi
 
 # Test OSError handling: write failure names nothing and loses no state
 from wyzecam.store import Store as StoreClass
-original_save_image = StoreClass.save_image
 
 def mock_save_image(self, cam, data, trigger, now):
     raise OSError(f"Permission denied: /app/out/wyze-camera/snapshots/{cam}/12345.jpg")
 
-setup({"WYZE_BRIDGE_URL": URL, "WYZE_BRIDGE_TOKEN": KEY, "WYZE_CAMERAS": ",".join(CAMS),
-       "WYZE_ROLES": "motion,snapshots", "WYZE_SNAPSHOT_ON_MOTION": "1"})
+out = setup({"WYZE_BRIDGE_URL": URL, "WYZE_BRIDGE_TOKEN": KEY, "WYZE_CAMERAS": ",".join(CAMS),
+             "WYZE_ROLES": "motion,snapshots", "WYZE_SNAPSHOT_ON_MOTION": "1"})
 fb = FakeBridge({CAMS[0]: 0, CAMS[1]: 0}, key=KEY)
 adapter().fetch(fb)
 fb.motion[CAMS[0]] = T
