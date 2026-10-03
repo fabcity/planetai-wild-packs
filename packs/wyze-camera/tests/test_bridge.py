@@ -59,6 +59,8 @@ print("  an answer that is not a motion time is refused, never turned into one")
 fb = FakeBridge({CAM: 1}, key=KEY)
 assert Bridge(fb, URL, KEY).image(CAM) == f"JPEG snapshot {CAM}".encode() and fb.calls[-1][0] == f"{URL}/snapshot/{CAM}.jpg"
 assert Bridge(fb, URL, KEY).image(CAM, "thumb") == f"JPEG thumb {CAM}".encode() and fb.calls[-1][0] == f"{URL}/thumb/{CAM}.jpg"
+# the bridge itself waits up to 15 s for a still from an on-demand stream (stream.py, get_rtsp_snap): give it longer
+assert fb.calls[-1][2] == 20 and Bridge(fb, URL, KEY).motion_ts(CAM) and fb.calls[-1][2] == 10, fb.calls[-2:]
 raises(lambda: Bridge(FakeBridge({CAM: 1}, snapshot=False), URL).image(CAM), NO_IMAGE)
 raises(lambda: Bridge(FakeBridge({CAM: 1}, key=KEY), URL, "wrong").image(CAM), REFUSED)
 raises(lambda: Bridge(FakeBridge({CAM: 1}, down=True), URL).image(CAM, "thumb"), UNREACHABLE)

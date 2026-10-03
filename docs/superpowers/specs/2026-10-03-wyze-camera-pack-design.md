@@ -74,11 +74,13 @@ copy of the storage and privacy rules below.
   time Wyze recorded the motion, and the time the node saw it, both UTC. The log carries the recorded time, not the
   poll time, so events are accurate to the second although the node checks every five minutes. Motion repeated within
   one poll is one event; Wyze's free plan already spaces events about five minutes apart.
-- On each write, events older than `WYZE_KEEP_DAYS` are pruned.
+- On each poll, events older than `WYZE_KEEP_DAYS` are pruned.
 - **The pack gives the node nothing.** Its adapter always returns no sensors and no readings, so motion never enters
-  the database and never reaches the daily export, the upstream aggregates, the shared API, the ask pane or the agent
-  tools. The node's only routes into `out/` serve named PNG files at its top level and in `out/earth`, and
-  `backup.sh` does not include `out/`, so the log stays on the node's disk and nowhere else.
+  the database and never reaches the daily export, the upstream aggregates, the shared API or the ask pane. The
+  node's only routes into `out/` serve named PNG files at its top level and in `out/earth`, and `backup.sh` does not
+  include `out/`, so the log stays on the node's disk. The one way out is a script's output: on node v0.76 a connected
+  admin agent can run the pack's scripts (§3); from planetai-node #169 on, a wild pack's scripts reach an agent only
+  when it lists them under `agent_scripts:`, and this pack lists none.
 
 ## 3. Seeing it work, and when it does not
 
@@ -170,7 +172,12 @@ anyone at the node's terminal, or a connected agent with admin access through `r
   a 401. The pack sends the header, so the key never sits in a URL.
 - `GET /snapshot/<cam>.jpg` is a fresh still from the RTSP stream; `GET /thumb/<cam>.jpg` is the camera's latest
   thumbnail from Wyze's cloud, which is what the pack saves as an event's own image. An image the bridge cannot give
-  is a 307 to `/static/notavailable.svg` (`app/frontend.py`).
+  is a 307 to `/static/notavailable.svg` (`app/frontend.py`). A still waits up to 15 s for an on-demand stream
+  (`app/wyzebridge/stream.py`, `get_rtsp_snap`), so the pack gives image requests 20 s and motion requests 10 s.
+- **Seen live on 3 October 2026** (v2.10.3 in Colima on node #1's Mac mini, one Wyze Cam v3): motion times arrive as
+  above, within seconds of a movement; a wrong key is a 401; an unknown camera answers `{"status": "error"}`. The
+  stream never connected from inside Colima's virtual machine, and Wyze's cloud answered 401 to the bridge's
+  thumbnail fetch, so both image requests were the 307. Motion works without either.
 - The last release is v2.10.3 (September 2024); the repository had commits in September 2026 and is not archived.
 
 ## To verify during implementation

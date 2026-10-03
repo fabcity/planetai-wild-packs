@@ -19,6 +19,9 @@ UNKNOWN = "a camera is unknown to the bridge"
 BAD_ANSWER = "the bridge answered something that is not a motion time"
 NO_IMAGE = "the bridge had no image"
 
+# The bridge waits up to 15 s for a still from an on-demand stream (stream.py, get_rtsp_snap); seen live, 3 Oct 2026.
+IMAGE_TIMEOUT = 20
+
 
 class BridgeError(Exception):
     pass
@@ -29,9 +32,10 @@ class Bridge:
         self.hc, self.url, self.timeout = hc, url.rstrip("/"), timeout
         self.headers = {"api": token} if token else {}
 
-    def _get(self, path: str):
+    def _get(self, path: str, timeout: float | None = None):
         try:
-            return self.hc.get(self.url + path, headers=self.headers, timeout=self.timeout, follow_redirects=False)
+            return self.hc.get(self.url + path, headers=self.headers, timeout=timeout or self.timeout,
+                               follow_redirects=False)
         except Exception:  # noqa: BLE001
             raise BridgeError(UNREACHABLE) from None
 
@@ -55,7 +59,7 @@ class Bridge:
         return float(value)
 
     def image(self, cam: str, kind: str = "snapshot") -> bytes:
-        r = self._get(f"/{kind}/{cam}.jpg")
+        r = self._get(f"/{kind}/{cam}.jpg", max(self.timeout, IMAGE_TIMEOUT))
         if r.status_code in (401, 403):
             raise BridgeError(REFUSED)
         ctype = (r.headers.get("content-type") or "").split(";")[0].strip().lower()
