@@ -4,6 +4,7 @@ import importlib.util
 import logging
 import sys
 from pathlib import Path
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from fakes import PACK, FakeBridge, setup  # noqa: E402
@@ -63,4 +64,30 @@ for bad in (FakeBridge({}, key=KEY), FakeBridge({CAMS[0]: T}, key="other"), Fake
 for m in said:
     clean(m)
 print("  every request failing raises, so the node shows a failing source; nothing names a camera, the address or the key")
+
+# Test OSError handling: write failure names nothing and loses no state
+from wyzecam.store import Store as StoreClass
+original_save_image = StoreClass.save_image
+
+def mock_save_image(self, cam, data, trigger, now):
+    raise OSError(f"Permission denied: /app/out/wyze-camera/snapshots/{cam}/12345.jpg")
+
+setup({"WYZE_BRIDGE_URL": URL, "WYZE_BRIDGE_TOKEN": KEY, "WYZE_CAMERAS": ",".join(CAMS),
+       "WYZE_ROLES": "motion,snapshots", "WYZE_SNAPSHOT_ON_MOTION": "1"})
+fb = FakeBridge({CAMS[0]: 0, CAMS[1]: 0}, key=KEY)
+adapter().fetch(fb)
+fb.motion[CAMS[0]] = T
+with patch.object(StoreClass, 'save_image', mock_save_image):
+    try:
+        adapter().fetch(fb)
+        raise AssertionError("OSError should be caught and re-raised as RuntimeError")
+    except RuntimeError as e:
+        assert str(e) == "wyze-camera: could not write to its output folder", f"got: {str(e)}"
+        clean(str(e))
+# Restore and poll again with same motion time, verify no duplicate
+fb.motion[CAMS[0]] = T
+assert adapter().fetch(fb) == ([], [])
+events_text = (out / "wyze-camera" / "motion.jsonl").read_text()
+assert events_text.count(CAMS[0]) == 1, "motion appended then save_state failed, but next poll should not duplicate"
+print("  a write failure names nothing and does not duplicate events on retry")
 print("adapter: ok")
