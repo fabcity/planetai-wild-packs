@@ -86,11 +86,11 @@ planetai run wyze-camera snapshot [camera]
   (3 October 2026). With neither, `snapshot` says the bridge had no image, and the motion log carries on.
 - **On node v0.76 the bridge token is not masked.** The pack lists it as a secret, but v0.76 does not know that
   field yet: Set up shows the token to anyone holding the admin token, and a connected AI agent can read it through
-  its settings tool. The first release after v0.76 masks it, with no change to the pack. Until you update, keep
+  its settings tool. v0.77 (6 October 2026) masks it, with no change to the pack. Until you update, keep
   agents disconnected, or protect the bridge another way.
 - **On node v0.76 a connected agent with admin access can run the three scripts.** Through the node's
   `run_pack_script` tool it can run `status`, `events` and `snapshot`, and read what they print: camera names, motion
-  history and the bridge address. `snapshot` takes a photo. The first release after v0.76 runs a wild pack's scripts
+  history and the bridge address. `snapshot` takes a photo. v0.77 runs a wild pack's scripts
   for an agent only when its pack.yaml lists them under `agent_scripts:`, and this pack lists none. Until you update,
   keep agents disconnected, or give them no admin access.
 - The design, and why: `docs/superpowers/specs/2026-10-03-wyze-camera-pack-design.md` in fabcity/planetai-wild-packs.
