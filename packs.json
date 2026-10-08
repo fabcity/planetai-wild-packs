@@ -11,6 +11,17 @@
     "status": "listed"
   },
   {
+    "id": "posidonia",
+    "name": "Posidonia",
+    "source": "fabcity/planetai-wild-packs/packs/posidonia",
+    "author": "Lucas Marangoni (Fab City Foundation)",
+    "reads": "Thermal stress on Posidonia oceanica from sea-surface temperature",
+    "kind": "data",
+    "licence": "Apache-2.0",
+    "tested_with": "v0.80",
+    "status": "listed"
+  },
+  {
     "id": "xiaomi-air",
     "name": "Xiaomi air purifiers (LAN)",
     "source": "fabcity/planetai-wild-packs/packs/xiaomi-air",
