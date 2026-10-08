@@ -11,6 +11,17 @@
     "status": "listed"
   },
   {
+    "id": "xiaomi-air",
+    "name": "Xiaomi air purifiers (LAN)",
+    "source": "fabcity/planetai-wild-packs/packs/xiaomi-air",
+    "author": "PLANETAI community",
+    "reads": "PM2.5, temperature, humidity and filter life from Xiaomi purifiers on the local network",
+    "kind": "code",
+    "licence": "Apache-2.0",
+    "tested_with": "v0.76",
+    "status": "listed"
+  },
+  {
     "id": "posidonia",
     "name": "Posidonia",
     "source": "fabcity/planetai-wild-packs/packs/posidonia",
