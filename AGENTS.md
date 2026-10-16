@@ -9,7 +9,7 @@ and every rule about what a pack is, lives in [fabcity/planetai-node](https://gi
 
 | the person says | read | then do this |
 |---|---|---|
-| "I want my node to use pack X", "how do I install a wild pack?" | README, *Adding a wild pack to your node* | On the node, from its folder (v0.76 or later): `planetai packs add <owner>/<repo>[/<folder>]`, or `planetai packs add <id>` for a pack in `packs.json` (read it first: it may be empty), then `planetai restart`. Never `git clone` on a node: a default install has no git. |
+| "I want my node to use pack X", "how do I install a wild pack?" | README, *Adding a wild pack to your node* | On the node, from its folder (v0.76 or later): `planetai packs add <owner>/<repo>[/<folder>]`, or `planetai packs add <id>` for a pack in `packs.json` (read it first), then `planetai restart`. Never `git clone` on a node: a default install has no git. |
 | "help me write a pack for my place" | the node's [`docs/PACKS.md`](https://github.com/fabcity/planetai-node/blob/main/docs/PACKS.md) | Write it in the author's own repository, or as `packs/<id>/` here. Start from a core pack of the same kind in the node's `packs/`, not from a blank file. |
 | "list my pack", "publish it so other nodes can use it" | README, *Listing a pack* | One pull request adding one entry to `packs.json`, pinned to a full 40-character commit. Run the checks below before you open it. |
 | "host it here, I don't want my own repo" | README, *Hosting a pack here* | Same pull request adds `packs/<id>/` and a CODEOWNERS line naming the author. Leave `commit` out of a hosted entry. |
@@ -42,8 +42,13 @@ on nobody's node without saying why.
   privileges, and only once the person running the node sets `PACKS_ALLOW_CODE=1`.
 - **`status` is `listed`.** Only a maintainer changes it to `reviewed`, and only after reading the pack (for a code
   pack, its adapter). Never set `reviewed` on your own pack or anyone else's.
-- **`requires: { node: ">=0.76" }`** in `pack.yaml` whenever the pack uses `readouts:` or `sections:`. An older node
-  ignores both without a word; with `requires:` it leaves the pack out and says why.
+- **`requires: { node: ">=0.76" }`** in `pack.yaml` whenever the pack uses `readouts:` or `sections:`, and
+  **`">=0.77"`** whenever it uses `secrets:` or `agent_scripts:`. An older node ignores those keys without a word (on
+  v0.76 a secret shows unmasked and an agent may run every script); with `requires:` it leaves the pack out and says why.
+- **A reading only the house may use takes `role: private`** in `channels.yml` (node v0.82): used at home, never
+  exported, pushed to a parent or read by an agent. Declare `requires: { node: ">=0.82" }` with it.
+- **A section with `wall: true` is read aloud on the Wall** (node v0.82: its figures reach the Wall's narration).
+  Never mark a house-only figure that way.
 - **A key or token the pack needs is listed under `secrets:`** in `pack.yaml` and read from the environment. Never put
   a value in the pack, in `packs.json`, in a test or in a pull request.
 - **A script an agent may run is named under `agent_scripts:`** in `pack.yaml`. A wild pack's other scripts run only

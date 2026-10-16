@@ -13,7 +13,7 @@ what a listed pack must satisfy.
 - [AGENTS.md](https://raw.githubusercontent.com/fabcity/planetai-wild-packs/main/AGENTS.md): the routing table, the local checks, and the rules a pack and its entry must keep.
 - [README.md](https://raw.githubusercontent.com/fabcity/planetai-wild-packs/main/README.md): what wild means, the entry fields, installing a pack on a node, listing, hosting, becoming core.
 - [packs.json](https://raw.githubusercontent.com/fabcity/planetai-wild-packs/main/packs.json): the list itself.
-- [tools/check.py](https://raw.githubusercontent.com/fabcity/planetai-wild-packs/main/tools/check.py): what CI runs, in six steps.
+- [tools/check.py](https://raw.githubusercontent.com/fabcity/planetai-wild-packs/main/tools/check.py): what CI runs.
 
 ## The node's side
 

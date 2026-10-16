@@ -17,7 +17,7 @@ Writing or listing a pack with an AI agent? Point it at [`AGENTS.md`](AGENTS.md)
 
 ## The list
 
-[`packs.json`](packs.json). Empty for now.
+[`packs.json`](packs.json).
 
 | field | what it says |
 |---|---|
@@ -76,7 +76,11 @@ rules and Index cells, an adapter for a new source, and since v0.76:
 - **a declared section of the dashboard**: a band on Now, and columns on the wall if you ask, drawn with the page's
   own readout cards. A wild pack ships no code for the page.
 - **`requires: { node: ">=0.76" }`**: a node that does not match leaves the pack out and says why. Declare it when
-  your pack uses readouts or a section, because an older node ignores both without a word.
+  your pack uses readouts or a section, and `">=0.77"` when it uses `secrets:` or `agent_scripts:`, because an older
+  node ignores those keys without a word (on v0.76 a secret shows unmasked and an agent may run every script).
+- since v0.82, **a `private` reading** (`role: private` in `channels.yml`): used at home, never exported, pushed to a
+  parent or read by an agent (declare `">=0.82"`); and **`wall: true`** on a section puts its figures in the Wall's
+  narration, so never on a house-only figure.
 
 ## Listing a pack
 
