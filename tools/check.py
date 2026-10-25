@@ -152,7 +152,7 @@ def main() -> None:
             errs.append(f"{e['id']}: could not fetch {e['source']} ({ex})")
     step("every pack fetched, and its pack.yaml agrees with its entry", errs)
 
-    r = subprocess.run([sys.executable, "tools/check_rules.py"], cwd=node, capture_output=True, text=True)
+    r = subprocess.run([sys.executable, "tools/check_rules.py"], cwd=node, env=dict(os.environ), capture_output=True, text=True)
     lines = [x for x in (r.stdout + r.stderr).splitlines() if x.startswith("  x ") or "check out" in x]
     step("rules and cells check out against the node's schema, core and wild together",
          [] if r.returncode == 0 else lines or [r.stdout[-400:] + r.stderr[-400:]])

@@ -1,5 +1,38 @@
 [
   {
+    "id": "wyze-camera",
+    "name": "Wyze cameras",
+    "source": "fabcity/planetai-wild-packs/packs/wyze-camera",
+    "author": "Tomas Diez (Fab City Foundation)",
+    "reads": "Wyze motion times and stills from docker-wyze-bridge on the local network",
+    "kind": "code",
+    "licence": "Apache-2.0",
+    "tested_with": "v0.76",
+    "status": "listed"
+  },
+  {
+    "id": "posidonia",
+    "name": "Posidonia",
+    "source": "fabcity/planetai-wild-packs/packs/posidonia",
+    "author": "Lucas Marangoni (Fab City Foundation)",
+    "reads": "Thermal stress on Posidonia oceanica from sea-surface temperature",
+    "kind": "data",
+    "licence": "Apache-2.0",
+    "tested_with": "v0.80",
+    "status": "listed"
+  },
+  {
+    "id": "xiaomi-air",
+    "name": "Xiaomi air purifiers (LAN)",
+    "source": "fabcity/planetai-wild-packs/packs/xiaomi-air",
+    "author": "PLANETAI community",
+    "reads": "PM2.5, temperature, humidity and filter life from Xiaomi purifiers on the local network",
+    "kind": "code",
+    "licence": "Apache-2.0",
+    "tested_with": "v0.76",
+    "status": "listed"
+  },
+  {
     "id": "singapore-nea",
     "name": "Singapore NEA and PUB open data",
     "source": "fabcity/planetai-wild-packs/packs/singapore-nea",

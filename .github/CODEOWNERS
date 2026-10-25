@@ -5,6 +5,8 @@
 # adds the pack, and a change to that folder then needs your review. Hosting a pack here is not adopting it.
 # /packs/<id>/          @<author>
 
+/packs/wyze-camera/     @tomasdiez
+/packs/posidonia/       @lucasmarangoni
 /packs/singapore-nea/     @saadcaffeine
 /packs/singapore-beach/   @saadcaffeine
 /packs/fire-smoke/        @saadcaffeine
