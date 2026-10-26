@@ -54,6 +54,7 @@ def decode(raw: bytes) -> list:
     """(descriptor, value) pairs of the report's first subset. pybufrkit hands values already scaled to SI units."""
     from pybufrkit.decoder import Decoder  # noqa: PLC0415
 
+    logging.getLogger("pybufrkit").setLevel(logging.WARNING)   # six "Configure Section" lines a report otherwise
     tv = Decoder().process(raw).template_data.value
     return list(zip((d.id for d in tv.decoded_descriptors_all_subsets[0]), tv.decoded_values_all_subsets[0]))
 

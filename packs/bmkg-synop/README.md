@@ -4,8 +4,7 @@ The hourly report of one BMKG weather station, read off WMO's WIS2 network. I wr
 station in the feed is Ngurah Rai airport (WIGOS `0-20000-0-97230`), on the southern coast.
 
 Until now the node's outdoor weather in Bali came from models, Open-Meteo and BMKG's own forecast. This is a
-measurement, made by Indonesia's weather service, so the node has something real to set its own sensors and the
-forecast against.
+measurement, made by Indonesia's weather service, so the node can check its own sensors and the forecast against it.
 
 ## What it reads
 
@@ -19,7 +18,7 @@ joins the room, yard or ring medians, and it never stands in for the region colu
 ## How it gets there
 
 WIS2 has no HTTP API. Each report is an MQTT notification on the global brokers, with the BUFR message inline, and
-about six global caches announce the same report. The pack keeps one subscription open to Météo-France's broker
+six global caches announce the same report. The pack keeps one subscription open to Météo-France's broker
 (`globalbroker.meteo.fr:8883`, the public login `everyone`/`everyone`), keeps each report once by its data id, and
 decodes it with [pybufrkit](https://github.com/ywangd/pybufrkit).
 
@@ -41,7 +40,7 @@ It needs `PACKS_ALLOW_CODE=1`, and `planetai packs install` to add pybufrkit (an
 
 - One station, at an airport by the sea. It says nothing about Ubud, the highlands or the north.
 - It has no thresholds of its own and raises no alert. Heat's line is still the house's.
-- Rain is only there when BMKG fills in the group; a missing group is no reading, never a zero.
+- Rain is only there when BMKG fills in the group. When a report leaves it empty, the pack stores no rain at all.
 - Only BMKG's feed. Another country's WIS2 topic would need its own `TOPIC`, and that is the step to take before
   this becomes core.
 
