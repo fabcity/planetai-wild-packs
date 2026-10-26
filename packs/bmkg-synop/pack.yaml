@@ -1,0 +1,49 @@
+id: bmkg-synop
+name: BMKG station reports (WIS2)
+description: >-
+  The hourly report of one BMKG synoptic station, as BMKG publishes it to WMO's WIS2: air temperature, dew point,
+  humidity, pressure, wind, cloud, visibility and rain, measured by Indonesia's weather service. Read off a WIS2
+  global broker, key-free. Written for Bali, where the one station in the feed is Ngurah Rai airport.
+author: Tomas Diez (Fab City Foundation)
+version: 0.1.0
+requires: { node: ">=0.76" }
+kind: code
+domain: heat
+metrics: [temp, dewpoint, humidity, pressure, wind_speed, wind_direction, cloud, visibility, rainfall_1h, rainfall_24h]
+scales: [region]
+# pybufrkit 0.2.25 calls bitstring.BitStream, which bitstring 5 removed: without the pin it installs and fails on
+# the first report. Both are pure Python.
+pip: ["pybufrkit==0.2.25", "bitstring==4.*"]
+env:
+  # No padding after `=`: a value pasted after spaces makes the line `VAR= value`, which shell reads as a command.
+  - "# bmkg-synop: the station's WIGOS id. 0-20000-0-97230 is Ngurah Rai, Bali; OSCAR/Surface lists the others"
+  - "BMKG_SYNOP_STATION=0-20000-0-97230"
+  - "# bmkg-synop: the WIS2 global broker, blank for Météo-France's (globalbroker.meteo.fr)"
+  - "BMKG_SYNOP_BROKER="
+needs: >-
+  An outbound connection to a WIS2 global broker on port 8883 (MQTT over TLS), held open. A few kilobytes an hour.
+  No key: WIS2's public login is everyone/everyone.
+attribution: >-
+  Observations by BMKG (Badan Meteorologi, Klimatologi, dan Geofisika), published as WMO core data through WIS2.
+
+sections:
+  - id: bmkg-synop
+    stage: observe
+    title: { en: "The airport's weather station, from BMKG", id: "Stasiun cuaca bandara, dari BMKG", es: "La estación meteorológica del aeropuerto, según BMKG" }
+    order: 47
+    note:
+      en: The hourly report of BMKG's station at Ngurah Rai airport, on Bali's southern coast. Measured by Indonesia's weather service, not here. It says nothing about the highlands or the north.
+      id: Laporan per jam dari stasiun BMKG di Bandara Ngurah Rai, di pesisir selatan Bali. Diukur oleh BMKG, bukan di sini. Laporan ini tidak bercerita tentang dataran tinggi atau wilayah utara.
+      es: El parte horario de la estación de BMKG en el aeropuerto de Ngurah Rai, en la costa sur de Bali. Lo mide el servicio meteorológico de Indonesia, no aquí. No dice nada de las montañas ni del norte.
+    readouts:
+      - { metric: temp, sensor_id: bmkg-synop, unit: °C, dp: 1, label: { en: air, id: udara, es: aire } }
+      - { metric: humidity, sensor_id: bmkg-synop, unit: "%", dp: 0, label: { en: humidity, id: kelembapan, es: humedad } }
+      - { metric: wind_speed, sensor_id: bmkg-synop, unit: km/h, dp: 0, label: { en: wind, id: angin, es: viento } }
+      - { metric: rainfall_24h, sensor_id: bmkg-synop, unit: mm, dp: 1, label: { en: rain in 24 hours, id: hujan 24 jam, es: lluvia en 24 horas } }
+
+readouts:
+  heat:
+    - { metric: temp, sensor_id: bmkg-synop, unit: °C, dp: 1,
+        label: { en: Air at Ngurah Rai airport (BMKG), id: Udara di Bandara Ngurah Rai (BMKG), es: Aire en el aeropuerto de Ngurah Rai (BMKG) } }
+    - { metric: humidity, sensor_id: bmkg-synop, unit: "%", dp: 0,
+        label: { en: Humidity at Ngurah Rai airport (BMKG), id: Kelembapan di Bandara Ngurah Rai (BMKG), es: Humedad en el aeropuerto de Ngurah Rai (BMKG) } }

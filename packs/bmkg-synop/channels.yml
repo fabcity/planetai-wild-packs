@@ -1,0 +1,13 @@
+# What each metric IS for this source. See the node's docs/PACKS.md.
+# A weather service's station, kilometres from the house and reporting once an hour: real air at a real place, so
+# `ambient`, but never comparable with the node's own or its ring's sensors. It must not move a median it is not part of.
+- { source: bmkg-synop, metric: temp,           role: ambient, comparable: false, unit: "°C" }
+- { source: bmkg-synop, metric: dewpoint,       role: ambient, comparable: false, unit: "°C" }
+- { source: bmkg-synop, metric: humidity,       role: ambient, comparable: false, unit: "%" }
+- { source: bmkg-synop, metric: pressure,       role: ambient, comparable: false, unit: "kPa" }
+- { source: bmkg-synop, metric: wind_speed,     role: ambient, comparable: false, unit: "km/h" }
+- { source: bmkg-synop, metric: wind_direction, role: ambient, comparable: false, unit: "°" }
+- { source: bmkg-synop, metric: cloud,          role: ambient, comparable: false, unit: "%" }
+- { source: bmkg-synop, metric: visibility,     role: ambient, comparable: false, unit: "km" }
+- { source: bmkg-synop, metric: rainfall_1h,    role: ambient, comparable: false, unit: "mm" }
+- { source: bmkg-synop, metric: rainfall_24h,   role: ambient, comparable: false, unit: "mm" }
