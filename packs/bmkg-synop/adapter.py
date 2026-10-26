@@ -13,8 +13,10 @@ again by its name, and the reports wait on the thread object until `fetch` takes
 Notifications arrive late and out of order. The 07:00 UTC report of 26 Oct 2026 was published at 07:10 and reached
 us again from a cache at 10:55. Each report is kept once, by its WIS2 data_id, and stored at its observation time.
 
-A station 8 km from a house is not the house's air: every channel is `comparable: false` (channels.yml), so it never
-joins the ring or the room medians. It is shown as itself, in its section and beside Heat.
+A station 8 km from a house is not the house's air. Its sensor is `kind: portal`: the node's `stats`, which feed the
+room, yard and ring medians, hold only kind `sensor`, while readouts and sections read `observations`, which hold the
+rest. As a plain `sensor` on node #1 it joined Heat's ring and showed in no readout. It is shown as itself, in its
+section and beside Heat.
 """
 import base64
 import json

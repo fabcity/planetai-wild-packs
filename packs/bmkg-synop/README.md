@@ -12,8 +12,10 @@ Air temperature, dew point, humidity, station pressure, wind (the 10-minute mean
 over the last hour and the last 24 hours when the report carries them. One sensor, `bmkg-synop`, at the station's
 coordinates. It shows as its own section on Now, and as two readouts beside Heat.
 
-Every channel is `comparable: false`. The station is kilometres from the house and reports once an hour, so it never
-joins the room, yard or ring medians, and it never stands in for the region column, which stays Open-Meteo.
+The station is kilometres from the house and reports once an hour, so the pack hands it to the node as `kind: portal`,
+a published measurement and not a device at the address. That keeps it out of the room, yard and ring medians, which
+read only the node's own kind of sensor, and its channels are `comparable: false` as well. It never stands in for the
+region column either, which stays Open-Meteo.
 
 ## How it gets there
 
