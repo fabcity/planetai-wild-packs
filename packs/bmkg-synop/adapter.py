@@ -148,7 +148,9 @@ def fetch(hc):
     _, lat, lon, data_id, _ = max(got, key=lambda r: r[0])
     sensors = [{
         "sensor_id": SENSOR, "source": SOURCE, "name": f"BMKG station {t.station.rsplit('-', 1)[-1]}",
-        "lat": lat, "lon": lon, "indoor": False, "local": False, "cadence": "PT1H",
+        # not a device at the address: `portal` keeps it out of the node's own sensors (stats) and in the
+        # observations that readouts and sections read
+        "lat": lat, "lon": lon, "indoor": False, "local": False, "kind": "portal", "scale": "region", "cadence": "PT1H",
         "meta": {"wigos": t.station, "network": "BMKG synoptic stations, via WMO WIS2", "licence": LICENCE,
                  "last_report": data_id, "attribution": "BMKG (Badan Meteorologi, Klimatologi, dan Geofisika), WMO WIS2"},
     }]

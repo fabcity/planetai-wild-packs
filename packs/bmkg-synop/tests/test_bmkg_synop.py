@@ -52,4 +52,18 @@ if importlib.util.find_spec("pybufrkit"):
     assert A.values(A.decode(raw)) == EXPECTED
     print("decoded the inline BUFR with pybufrkit too")
 
+    # fetch drains what the listener left on its thread. A stand-in thread of the same name keeps this off the network.
+    import collections
+    import threading
+    stop = threading.Event()
+    t = threading.Thread(target=stop.wait, daemon=True, name=A.THREAD)
+    t.station, t.reports = STATION, collections.deque([(ts, lat, lon, data_id, A.values(A.decode(raw)))] * 2)
+    t.start()
+    sensors, readings = A.fetch(None)
+    stop.set()
+    # a weather service's station is not a device at the address: the node's readouts only read non-`sensor` kinds
+    assert sensors[0]["kind"] == "portal" and sensors[0]["scale"] == "region" and not sensors[0]["local"], sensors
+    assert ("temp", 31.8) in {(m, v) for _, _, m, v in readings} and not t.reports
+    print("fetch hands the node a portal sensor at region scale")
+
 print("bmkg-synop: ok")
