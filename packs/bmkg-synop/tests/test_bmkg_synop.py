@@ -13,7 +13,8 @@ spec = importlib.util.spec_from_file_location("bmkg_synop_adapter", HERE.parent 
 A = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(A)
 FIX = json.loads((HERE / "report-97230-2026-10-26T07.json").read_text())
-STATION = "0-20000-0-97230"
+STATION = A.STATION
+assert STATION == "0-20000-0-97230"   # Ngurah Rai, and the labels in pack.yaml say so
 
 # What BMKG reported, read off the decoded BUFR by hand: 304.95 K, 296.75 K, 62 %, 100970 Pa, 130° at 4.1 m/s,
 # 10000 m, 88 % cloud, and no rain group filled in.
@@ -57,11 +58,12 @@ if importlib.util.find_spec("pybufrkit"):
     import threading
     stop = threading.Event()
     t = threading.Thread(target=stop.wait, daemon=True, name=A.THREAD)
-    t.station, t.reports = STATION, collections.deque([(ts, lat, lon, data_id, A.values(A.decode(raw)))] * 2)
+    t.reports = collections.deque([(ts, lat, lon, data_id, A.values(A.decode(raw)))] * 2)
     t.start()
     sensors, readings = A.fetch(None)
     stop.set()
     # a weather service's station is not a device at the address: the node's readouts only read non-`sensor` kinds
+    assert sensors[0]["meta"]["wigos"] == STATION and "Ngurah Rai" in sensors[0]["name"], sensors
     assert sensors[0]["kind"] == "portal" and sensors[0]["scale"] == "region" and not sensors[0]["local"], sensors
     assert ("temp", 31.8) in {(m, v) for _, _, m, v in readings} and not t.reports
     print("fetch hands the node a portal sensor at region scale")

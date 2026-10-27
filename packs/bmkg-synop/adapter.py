@@ -1,11 +1,13 @@
 """BMKG's hourly SYNOP report for one station, read off WMO's WIS2 global broker. Key-free, no account.
 
 BMKG publishes every synoptic station's report as WMO core data (free and unrestricted, Resolution 1 Cg-Ext(2021)).
-There is no HTTP API: a report exists only as an MQTT notification on WIS2, announced once by each of about six
+There is no HTTP API: a report exists only as an MQTT notification on WIS2, announced once by each of six
 global caches, with the BUFR4 message inline. So this pack keeps one subscription open in a thread of its own and
 hands the node whatever arrived since the last poll.
 
-    BMKG_SYNOP_STATION=0-20000-0-97230     # WIGOS id; 97230 is Ngurah Rai, the one Bali station in the feed
+It reads one station, Ngurah Rai airport (WIGOS 0-20000-0-97230), the one Bali station in the feed. The station is
+fixed, not a setting: the readings keep one sensor id and pack.yaml's labels name the airport, so another station
+would be another pack.
 
 The node imports adapter.py afresh on every poll, so nothing kept at module level lasts. The thread does: it is found
 again by its name, and the reports wait on the thread object until `fetch` takes them.
@@ -31,6 +33,7 @@ log = logging.getLogger("planetai.pack.bmkg-synop")
 
 SOURCE = "bmkg-synop"
 SENSOR = "bmkg-synop"
+STATION = "0-20000-0-97230"        # Ngurah Rai airport, Bali
 THREAD = "bmkg-synop"
 TOPIC = "cache/a/wis2/id-bmkg/data/core/weather/surface-based-observations/synop"
 BROKER = "globalbroker.meteo.fr"   # Météo-France's WIS2 global broker; any of the four carries the same feed
@@ -98,13 +101,13 @@ def _listen(t: threading.Thread) -> None:
     def on_connect(c, _u, _f, rc, _p=None):
         if rc == 0:
             c.subscribe(TOPIC, qos=1)
-            log.info("bmkg-synop: listening for %s on %s", t.station, t.broker)
+            log.info("bmkg-synop: listening for %s on %s", STATION, t.broker)
         else:
             log.warning("bmkg-synop: %s refused the connection (%s)", t.broker, rc)
 
     def on_message(_c, _u, m):
         try:
-            got = notification(json.loads(m.payload), t.station)
+            got = notification(json.loads(m.payload), STATION)
             if not got or got[0] in t.seen:
                 return
             t.seen.append(got[0])
@@ -127,7 +130,6 @@ def _thread() -> threading.Thread:
     t = next((t for t in threading.enumerate() if t.name == THREAD), None)
     if t is None:
         t = threading.Thread(target=lambda: _listen(t), daemon=True, name=THREAD)
-        t.station = os.getenv("BMKG_SYNOP_STATION", "").strip() or "0-20000-0-97230"
         t.broker = os.getenv("BMKG_SYNOP_BROKER", "").strip() or BROKER
         t.reports, t.seen, t.warned, t.last = deque(maxlen=48), deque(maxlen=64), set(), None
         t.start()
@@ -149,11 +151,11 @@ def fetch(hc):
         return [], []
     _, lat, lon, data_id, _ = max(got, key=lambda r: r[0])
     sensors = [{
-        "sensor_id": SENSOR, "source": SOURCE, "name": f"BMKG station {t.station.rsplit('-', 1)[-1]}",
+        "sensor_id": SENSOR, "source": SOURCE, "name": "BMKG Ngurah Rai airport (97230)",
         # not a device at the address: `portal` keeps it out of the node's own sensors (stats) and in the
         # observations that readouts and sections read
         "lat": lat, "lon": lon, "indoor": False, "local": False, "kind": "portal", "scale": "region", "cadence": "PT1H",
-        "meta": {"wigos": t.station, "network": "BMKG synoptic stations, via WMO WIS2", "licence": LICENCE,
+        "meta": {"wigos": STATION, "network": "BMKG synoptic stations, via WMO WIS2", "licence": LICENCE,
                  "last_report": data_id, "attribution": "BMKG (Badan Meteorologi, Klimatologi, dan Geofisika), WMO WIS2"},
     }]
     readings = [(ts, SENSOR, metric, v) for ts, _, _, _, vals in got for metric, v in vals.items()]

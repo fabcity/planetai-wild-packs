@@ -3,9 +3,9 @@ name: BMKG station reports (WIS2)
 description: >-
   The hourly report of one BMKG synoptic station, as BMKG publishes it to WMO's WIS2: air temperature, dew point,
   humidity, pressure, wind, cloud, visibility and rain, measured by Indonesia's weather service. Read off a WIS2
-  global broker, key-free. Written for Bali, where the one station in the feed is Ngurah Rai airport.
+  global broker, key-free. One station only: Ngurah Rai airport, the one Bali station in the feed.
 author: Tomas Diez (Fab City Foundation)
-version: 0.1.0
+version: 0.2.0
 requires: { node: ">=0.76" }
 kind: code
 domain: heat
@@ -16,8 +16,6 @@ scales: [region]
 pip: ["pybufrkit==0.2.25", "bitstring==4.*"]
 env:
   # No padding after `=`: a value pasted after spaces makes the line `VAR= value`, which shell reads as a command.
-  - "# bmkg-synop: the station's WIGOS id. 0-20000-0-97230 is Ngurah Rai, Bali; OSCAR/Surface lists the others"
-  - "BMKG_SYNOP_STATION=0-20000-0-97230"
   - "# bmkg-synop: the WIS2 global broker, blank for Météo-France's (globalbroker.meteo.fr)"
   - "BMKG_SYNOP_BROKER="
 needs: >-
