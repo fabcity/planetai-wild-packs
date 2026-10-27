@@ -1,7 +1,11 @@
 # bmkg-synop
 
-The hourly report of one BMKG weather station, read off WMO's WIS2 network. I wrote it for Bali, where the only BMKG
-station in the feed is Ngurah Rai airport (WIGOS `0-20000-0-97230`), on the southern coast.
+The hourly report of BMKG's weather station at Ngurah Rai airport (WIGOS `0-20000-0-97230`), on Bali's southern
+coast, read off WMO's WIS2 network. I wrote it for Bali, and it is the only Bali station in the feed.
+
+It reads that one station and nothing else. There is no setting to pick another one: the readings keep one sensor id
+and the labels on the page name the airport, so pointing it at another station would file that station's weather
+under Ngurah Rai. A node elsewhere in Indonesia needs its own pack, with its own labels.
 
 Until now the node's outdoor weather in Bali came from models, Open-Meteo and BMKG's own forecast. This is a
 measurement, made by Indonesia's weather service, so the node can check its own sensors and the forecast against it.
@@ -31,8 +35,7 @@ hour. When the node starts, it waits for the next notification; it does not go b
 ## Settings
 
 ```
-BMKG_SYNOP_STATION=0-20000-0-97230   # any BMKG station's WIGOS id; OSCAR/Surface lists them
-BMKG_SYNOP_BROKER=                   # blank for globalbroker.meteo.fr
+BMKG_SYNOP_BROKER=      # blank for globalbroker.meteo.fr
 ```
 
 It needs `PACKS_ALLOW_CODE=1`, and `planetai packs install` to add pybufrkit (and bitstring 4, which pybufrkit

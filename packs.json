@@ -81,7 +81,7 @@
     "name": "BMKG station reports (WIS2)",
     "source": "fabcity/planetai-wild-packs/packs/bmkg-synop",
     "author": "Tomas Diez (Fab City Foundation)",
-    "reads": "The hourly SYNOP report of one BMKG station (Ngurah Rai, Bali, by default) from WMO WIS2 over MQTT",
+    "reads": "The hourly SYNOP report of BMKG station at Ngurah Rai airport, Bali, from WMO WIS2 over MQTT",
     "kind": "code",
     "licence": "Apache-2.0 (code); WMO core data, free and unrestricted (data)",
     "tested_with": "v0.90.0",
