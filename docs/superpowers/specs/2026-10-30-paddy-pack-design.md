@@ -4,8 +4,8 @@
 cycle near node #1. The test, its figures and its scripts are in the FAB CITY folder under
 `Claude outputs/s1-rice-test-2026-10-30/`, outside any repository.*
 
-**Status: proposed 30 October 2026, and Tomas answered its three questions the same day (§10). Nothing is built.**
-§11 is what done means.
+**Status: proposed 30 October 2026, its three questions answered the same day (§10), built 31 October in
+`packs/paddy/`.** §11 is what done means, and says which items are done.
 
 ## 1. What it is for
 
@@ -184,6 +184,9 @@ Measured from the tile byte-count tables of four recent scenes over Canggu. A no
 | 3 km | 3.5 MB | about 0.4 GB, less with SCL read first | 18 MB |
 | 10 km, the most a keeper can set | 22.6 MB | about 2.7 GB | 200 MB |
 
+Scenes count when their cloud cover is under 50 %, the cut the test used, so a year is fewer scenes than the 120
+counted above at 70 %.
+
 The flood check adds B03 at 10 m and B11 at 20 m, and a third array on disk. That cost was not measured; B03 should
 weigh about what B04 does, and B11 about a quarter of it. Set up shows the keeper the yearly figure for the size they
 choose.
@@ -203,8 +206,10 @@ square is the keeper's, Tomas can centre node #1 on the paddies he wants to foll
 `-8.6388,115.1212`, with the flood check off.
 
 The standing rule holds: node #1 runs the pack through a real cycle before it is listed. With its square on the
-Canggu strip, that cycle proves the full case, and `planetai run paddy verify --at -8.6388,115.1212` checks it
-against the test (§11).
+Canggu strip, that cycle proves the full case. `planetai run paddy verify` checks the kept square, the rule and the
+database without the network, and is the one script an agent may run. `planetai run paddy reproduce --box
+115.09,-8.71,115.23,-8.61 --flood off --end 2026-10 --expect-rice 1420 --expect-lost 25-40` re-runs the test strip
+from nothing; it reads several GB, so it stays off the agent list (§11).
 
 ## 8. The Index
 
@@ -252,8 +257,9 @@ Still open, and neither blocks v1:
 2. `packs/paddy/` here holds `pack.yaml` (`env:`, `readouts:`, `sections:`, `agent_scripts:`, `requires:`,
    attribution), `adapter.py`, `rules.yml`, `channels.yml`, the `backfill` and `verify` scripts, and a README that
    answers the five questions of planetai-node `docs/decisions/2026-10-03-pack-design.md`.
-3. `verify --at <lat,lon>` re-runs the rule on a known paddy and asserts the six states add up to the square. On the
+3. `reproduce --box` re-runs the rule on a known paddy and asserts the six states add up to the box. On the
    Canggu strip, with the flood check off, it reproduces 1,420 ha of rice within 10 %, and 25 to 40 ha lost.
+   `verify` checks the node's own square offline.
 4. `packs/paddy/tests/test_paddy.py`, standard library only, on synthetic pixels: two rice seasons a year, one
    flooded season a year, barley sown twice and never flooded, a field cleared to bare, a lawn, a fish pond, and a
    pixel never clear. It asserts the partition, that the barley is rice with the flood check off and not with it on,

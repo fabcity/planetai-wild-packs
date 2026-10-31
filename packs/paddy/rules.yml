@@ -1,0 +1,35 @@
+# One piece of news: more land reads as lost than at the read before. `info`, because what to do is the household's
+# and its subak's to decide, and the pack cannot tell a new roof from a field scraped bare. It names hectares and an
+# H3 res-8 cell, never a parcel or an owner. A month's cooldown: land is lost on the scale of seasons.
+- id: lost
+  level: info
+  cooldown_minutes: 43200
+  long_cooldown_ok: true
+  sql: |
+    WITH r AS (
+      SELECT ts, value, row_number() OVER (ORDER BY ts DESC) AS n
+      FROM readings WHERE sensor_id = 'paddy-square' AND metric = 'rice_lost_ha' AND ts <= now())
+    SELECT round((a.value - b.value)::numeric, 1)            AS more_ha,
+           round(a.value::numeric, 1)                         AS lost_ha,
+           coalesce(s.meta->>'lost_cell', 'the square')       AS cell
+    FROM r a JOIN r b ON a.n = 1 AND b.n = 2
+    JOIN sensors s ON s.sensor_id = 'paddy-square'
+    WHERE a.value - b.value >= 0.5 AND a.ts >= now() - interval '20 days'
+  message:
+    en: "{more_ha} ha more land that was green a year ago reads as bare or built now, most of it around {cell}. {lost_ha} ha in the square in all."
+    id: "{more_ha} ha lagi lahan yang hijau setahun lalu kini terbaca gundul atau terbangun, sebagian besar di sekitar {cell}. Seluruhnya {lost_ha} ha di dalam kotak."
+    es: "{more_ha} ha más de tierra que estaba verde hace un año se lee ahora desnuda o construida, casi toda alrededor de {cell}. {lost_ha} ha en el cuadrado en total."
+
+# The newest figures for the report and the Wall, as `bundle.rice`.
+- id: rice
+  contributes: report
+  sql: |
+    WITH last AS (
+      SELECT DISTINCT ON (metric) metric, value, ts FROM readings
+      WHERE sensor_id = 'paddy-square' AND ts <= now() ORDER BY metric, ts DESC)
+    SELECT to_char(max(ts) FILTER (WHERE metric = 'rice_ha'), 'YYYY-MM-DD')   AS seen_at,
+           round(max(value) FILTER (WHERE metric = 'rice_ha')::numeric)          AS rice_ha,
+           round(max(value) FILTER (WHERE metric = 'rice_lost_ha')::numeric, 1)  AS lost_ha,
+           round(max(value) FILTER (WHERE metric = 'rice_bare_pct')::numeric)    AS bare_pct,
+           round(max(value) FILTER (WHERE metric = 'months_read')::numeric)      AS months_read
+    FROM last

@@ -1,0 +1,8 @@
+# What each metric IS for this source. See the node's docs/PACKS.md.
+# Hectares of land from orbit: `ambient` because it is the land at a place, never comparable with anything a
+# device here measures. The share and the loss are computed by this pack from the same pixels.
+- { source: paddy, metric: rice_ha,       role: ambient,       comparable: false, unit: "ha" }
+- { source: paddy, metric: rice_lost_ha,  role: derived,       comparable: false, unit: "ha" }
+- { source: paddy, metric: rice_bare_pct, role: derived,       comparable: false, unit: "%" }
+- { source: paddy, metric: clear_days,    role: device_health, comparable: false, unit: "days" }
+- { source: paddy, metric: months_read,   role: device_health, comparable: false, unit: "months" }

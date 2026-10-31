@@ -86,5 +86,16 @@
     "licence": "Apache-2.0 (code); WMO core data, free and unrestricted (data)",
     "tested_with": "v0.90.0",
     "status": "listed"
+  },
+  {
+    "id": "paddy",
+    "name": "Rice around this node (Sentinel-2)",
+    "source": "fabcity/planetai-wild-packs/packs/paddy",
+    "author": "Tomas Diez (Fab City Foundation)",
+    "reads": "Rice land still farmed and land lost, in a square the keeper chooses, from every clear 10 m Sentinel-2 pixel over 25 months (Planetary Computer, key-free)",
+    "kind": "code",
+    "licence": "Apache-2.0 (code); Copernicus Sentinel data, free and open with attribution (data)",
+    "tested_with": "v0.90.0",
+    "status": "listed"
   }
 ]
