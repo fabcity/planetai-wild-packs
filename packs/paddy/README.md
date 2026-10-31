@@ -68,8 +68,8 @@ Every pixel of the square lands in exactly one of six states, and a test holds t
 ## Where the thresholds come from
 
 - **Greenness**, from a strip of Badung from Canggu to Pemogan, October 2024 to October 2026, two crops a year
-  (`Claude outputs/s1-rice-test-2026-10-30/` in the Fab City folder). There 1,420 ha cycled as rice, and 25 to 40 ha
-  went from green to bare or built. `planetai run paddy reproduce` re-runs it.
+  (`Claude outputs/s1-rice-test-2026-10-30/` in the Fab City folder). There 1,420 ha cycled as rice, and 40 ha went
+  from green to bare or built by the strict rule (up to 127 ha by looser ones). `planetai run paddy reproduce` re-runs it.
 - **The flood**, from declared parcels in the Ebro delta and Segrià, 2024 and 2025 (DUN, Generalitat de Catalunya).
 - **The cloud cut**, scenes under 50 % cloud, and SCL classes 4, 5 and 6 as clear, as in the Badung test.
 
@@ -81,6 +81,10 @@ These were measured in Badung and the Ebro. Anywhere else, check them against fi
   index the same.
 - The rule against the numpy rule of 30 Oct, on the same monthly stacks: the same rice pixels in the Badung strip
   (1,529 ha) and in the Ebro delta with the flood check on (7,194 ha).
+- `reproduce` on that strip from nothing, 198 scenes through this pack's own code (31 Oct): 1,424 ha of rice
+  against 1,420, and 41 ha lost against 40.
+- On node #1, a 3 km square at Canggu: 639 ha of rice and 7.6 ha lost, against 659 ha and 7.6 ha from the 30 Oct
+  stack read with rasterio, which used a 60 % cloud cut.
 - `tests/test_paddy.py`, offline: the 15-bit unpacker, a tiled TIFF written by the test and read back, the offset,
   the six states on made-up pixels (two crops, one flooded crop, barley, a cleared field, a lawn, a pond, cloud),
   and the poll's pace.

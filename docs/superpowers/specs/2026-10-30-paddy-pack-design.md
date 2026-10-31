@@ -208,7 +208,7 @@ square is the keeper's, Tomas can centre node #1 on the paddies he wants to foll
 The standing rule holds: node #1 runs the pack through a real cycle before it is listed. With its square on the
 Canggu strip, that cycle proves the full case. `planetai run paddy verify` checks the kept square, the rule and the
 database without the network, and is the one script an agent may run. `planetai run paddy reproduce --box
-115.09,-8.71,115.23,-8.61 --flood off --end 2026-10 --expect-rice 1420 --expect-lost 25-40` re-runs the test strip
+115.09,-8.71,115.23,-8.61 --flood off --end 2026-10 --expect-rice 1420 --expect-lost 36-44` re-runs the test strip
 from nothing; it reads several GB, so it stays off the agent list (§11).
 
 ## 8. The Index
@@ -258,7 +258,9 @@ Still open, and neither blocks v1:
    attribution), `adapter.py`, `rules.yml`, `channels.yml`, the `backfill` and `verify` scripts, and a README that
    answers the five questions of planetai-node `docs/decisions/2026-10-03-pack-design.md`.
 3. `reproduce --box` re-runs the rule on a known paddy and asserts the six states add up to the box. On the
-   Canggu strip, with the flood check off, it reproduces 1,420 ha of rice within 10 %, and 25 to 40 ha lost.
+   Canggu strip, with the flood check off, it reproduces 1,420 ha of rice and the strict rule's 40 ha lost, each within 10 %. Done 31 Oct:
+   1,424 ha and 41 ha. (This item said 25 to 40 ha until the run; 25 was where the monthly and every-look counts
+   overlapped, and the test's own figure is 40.)
    `verify` checks the node's own square offline.
 4. `packs/paddy/tests/test_paddy.py`, standard library only, on synthetic pixels: two rice seasons a year, one
    flooded season a year, barley sown twice and never flooded, a field cleared to bare, a lawn, a fish pond, and a

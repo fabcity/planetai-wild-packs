@@ -1,11 +1,12 @@
 """Re-run a published test on a box, from nothing, and compare.  planetai run paddy reproduce --box W,S,E,N ...
 
     planetai run paddy reproduce --box 115.09,-8.71,115.23,-8.61 --flood off --end 2026-10 \\
-        --expect-rice 1420 --expect-lost 25-40
+        --expect-rice 1420 --expect-lost 36-44
 
-That is the Canggu to Pemogan strip of 30 Oct 2026, where 1,420 ha cycled as rice and 25 to 40 ha went from green to
-bare or built. It reads every scene of 25 months over the box, several GB, into out/paddy-reproduce/, and leaves
-the node's own square alone. Not open to agents, for that reason.
+That is the Canggu to Pemogan strip of 30 Oct 2026, where 1,420 ha cycled as rice and, by the strict
+rule, 40 ha went from green to bare or built (36-44 is that within 10 %). On 31 Oct it gave 1,424 and 41.
+It reads every scene of 25 months over the box, several GB, into out/paddy-reproduce/, and leaves the node's own
+square alone. Not open to agents, for that reason.
 """
 import argparse
 import logging
