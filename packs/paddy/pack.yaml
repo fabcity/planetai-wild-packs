@@ -28,7 +28,8 @@ agent_scripts: [verify]
 needs: >-
   Network to planetarycomputer.microsoft.com and its blob storage. No key, no account. One STAC search a day and one
   scene per poll, at most PADDY_READS a day: about 3.5 MB a scene for a 3 km square, 23 MB at 10 km, more with the
-  flood check. Filling 25 months takes a few weeks at that pace, or one `planetai run paddy backfill`.
+  flood check. Filling 25 months takes a few weeks at that pace, or one `planetai run paddy backfill`: on node #1 a 3 km square was
+  95 scenes, about 0.35 GB and 18 minutes, and 23 MB on disk.
 attribution: >-
   Contains modified Copernicus Sentinel data <years read>, read through Microsoft Planetary Computer. The sensor's
   `meta.attribution` carries the years.
@@ -58,7 +59,7 @@ sections:
     readouts:
       - { metric: rice_ha, sensor_id: paddy-square, unit: ha, dp: 0, label: { en: rice, id: sawah, es: arroz } }
       - { metric: rice_lost_ha, sensor_id: paddy-square, unit: ha, dp: 1,
-          label: { en: green a year ago, bare or built now, id: hijau setahun lalu, kini gundul atau terbangun, es: verde hace un año, hoy desnuda o construida } }
+          label: { en: "green a year ago, bare or built now", id: "hijau setahun lalu, kini gundul atau terbangun", es: "verde hace un año, hoy desnuda o construida" } }
       - { metric: rice_bare_pct, sensor_id: paddy-square, unit: "%", dp: 0,
           label: { en: rice bare or flooded at its last clear look, id: sawah gundul atau tergenang saat terakhir terlihat, es: arroz desnudo o inundado en la última vista despejada } }
       - { metric: months_read, sensor_id: paddy-square, unit: of 25, dp: 0, label: { en: months read, id: bulan terbaca, es: meses leídos } }

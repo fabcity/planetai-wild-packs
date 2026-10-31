@@ -1,6 +1,6 @@
 """Read the keeper's whole 25 months now, instead of PADDY_READS scenes a day.  planetai run paddy backfill
 
-About 0.9 GB for a 3 km square and the best part of a day's downloading at 10 km. It can be stopped and run again:
+A 3 km square on node #1 took 18 minutes: 95 scenes, about 0.35 GB. A 10 km square is about ten times that. It can be stopped and run again:
 every scene read is remembered, and the poll carries on from where it stopped. The hectares appear at the next poll.
 """
 import logging

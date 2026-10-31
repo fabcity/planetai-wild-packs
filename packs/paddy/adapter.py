@@ -605,6 +605,9 @@ def step(hc, r: Path, g: dict, flood: bool, now: datetime, per_day: float, per_c
             state["clear_look"] = item["datetime"]
         state["newest"] = max(state.get("newest") or "", item["datetime"])
         state["changed"] = True
+        if per_call == float("inf"):
+            state["reads"] = {day: done}
+            save_state(r, state)                   # a stopped backfill carries on from here, not from the start
     state["reads"] = {day: done}
     store.prune(keep)
     save_state(r, state)

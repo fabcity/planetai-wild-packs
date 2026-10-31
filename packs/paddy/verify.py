@@ -51,5 +51,5 @@ try:
 except Exception as e:  # noqa: BLE001
     step(4, False, f"the database did not answer ({type(e).__name__})")
 
-print(f"\n{A.ATTRIBUTION}")
+print(f"\n{A.attribution(months)}")
 sys.exit(1 if fails else 0)

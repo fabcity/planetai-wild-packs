@@ -5,7 +5,7 @@ built now. I wrote it for Bali, where the sawah is where food comes from and how
 is sold for villas one field at a time. Nobody in a house sees that across a few kilometres.
 
 It reads Sentinel-2 from Microsoft Planetary Computer, every clear 10 m pixel over 25 months, with no key and no new
-library. It counts rice and nothing else. The design, the tests behind every threshold and the decisions are in
+library. It counts rice and nothing else. The design and the tests behind every threshold are in
 `docs/superpowers/specs/2026-10-30-paddy-pack-design.md` in this repository.
 
 ## The five questions
@@ -30,7 +30,7 @@ PADDY_FLOOD_CHECK=     # on or off, see below
 PADDY_READS=4          # the most scenes read in a day, one per poll
 ```
 
-**The flood check.** Going bare and green twice is what any field sown and harvested twice does. On declared
+The flood question is there because going bare and green twice is what any field sown and harvested twice does. On declared
 parcels in Segrià, Catalonia, which grows no rice at all, 95 % of the barley passed that alone. A flood followed by
 a crop is what makes it rice. So with the check on, a pixel also needs a month with standing water (MNDWI above 0.2)
 and canopy within four months after. In the Ebro delta that keeps 78 % of the declared rice and 0.1 % of every other
@@ -44,7 +44,7 @@ between rice crops is counted with the rice.
 It needs `PACKS_ALLOW_CODE=1`. The history fills at PADDY_READS scenes a day, which takes weeks, or at once with:
 
 ```
-planetai run paddy backfill      # about 0.9 GB at 3 km, several GB at 10 km; stop and restart it as you like
+planetai run paddy backfill      # 3 km on node #1: 95 scenes, 0.35 GB, 18 min; stop and restart it as you like
 ```
 
 The hectares appear only once all 25 months are read. Before that the first year is empty, so lost would read zero
@@ -73,7 +73,7 @@ Every pixel of the square lands in exactly one of six states, and a test holds t
 - **The flood**, from declared parcels in the Ebro delta and Segrià, 2024 and 2025 (DUN, Generalitat de Catalunya).
 - **The cloud cut**, scenes under 50 % cloud, and SCL classes 4, 5 and 6 as clear, as in the Badung test.
 
-Thresholds for Badung are not thresholds for the Mekong. Check them against fields you know before you trust them.
+These were measured in Badung and the Ebro. Anywhere else, check them against fields you know before you trust them.
 
 ## How it was checked
 
@@ -102,4 +102,5 @@ Thresholds for Badung are not thresholds for the Mekong. Check them against fiel
 
 The code is Apache-2.0, and its TIFF reader and projection come from the node's `surface-heat` pack. The data is
 Copernicus Sentinel data, free, full and open under the Copernicus data policy (Commission Delegated Regulation (EU)
-No 1159/2013), with attribution: "Contains modified Copernicus Sentinel data". Microsoft hosts it.
+No 1159/2013), with the notice the Commission asks for, "Contains modified Copernicus Sentinel data [year]". The pack
+fills in the years it read. Microsoft hosts it.

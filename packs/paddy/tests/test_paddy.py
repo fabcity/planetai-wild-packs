@@ -202,5 +202,41 @@ with tempfile.TemporaryDirectory() as d:
     assert st["seen"] == ["S2_23"]                                               # a new answer wiped the old square
     st, _ = A.step(None, r, g, True, now, per_day=float("inf"), per_call=float("inf"), get=object())
     assert not st["todo"] and len(st["seen"]) == 5                               # backfill reads everything
+    calls = []
+    def boom(get, item, g, flood):                                               # a backfill stopped at its third scene
+        calls.append(item["id"])
+        if len(calls) == 3:
+            raise KeyboardInterrupt
+        return bytes([180] * 100), bytes([20] * 100), bytes(100), 0.9
+    A.read_scene = boom
+with tempfile.TemporaryDirectory() as d:
+    r = Path(d)
+    try:
+        A.step(None, r, g, True, now, per_day=float("inf"), per_call=float("inf"), get=object())
+    except KeyboardInterrupt:
+        pass
+    assert A.load_state(r)["seen"] == ["S2_23", "S2_18"], A.load_state(r)       # the two it finished are remembered
+
+# ---------------------------------------------------------------- pack.yaml: every label in all three locales
+
+import yaml                                                                      # noqa: E402
+
+manifest = yaml.safe_load((HERE.parent / "pack.yaml").read_text())
+
+
+def labels(x):
+    if isinstance(x, dict):
+        for k, v in x.items():
+            if k in ("label", "title", "note"):
+                yield v
+            else:
+                yield from labels(v)
+    elif isinstance(x, list):
+        for v in x:
+            yield from labels(v)
+
+
+for lab in labels(manifest):                                                     # an unquoted comma splits a label
+    assert isinstance(lab, dict) and set(lab) == {"en", "id", "es"} and all(isinstance(v, str) for v in lab.values()), lab
 
 print("paddy: all checks passed")
