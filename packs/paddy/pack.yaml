@@ -1,0 +1,76 @@
+id: paddy
+name: Rice around this node (Sentinel-2)
+description: >-
+  How many hectares of a square the keeper chooses still go through rice seasons, and how many were green a year ago
+  and read bare or built now. Every clear 10 m pixel of Sentinel-2 L2A over 25 months, read from Microsoft Planetary
+  Computer, anonymously. Rice only. A satellite model, never a measurement here, and never about one field or owner.
+author: Tomas Diez (Fab City Foundation)
+version: 0.1.0
+requires: { node: ">=0.82.0" }
+kind: code
+domain: land
+metrics: [rice_ha, rice_lost_ha, rice_bare_pct, clear_days, months_read]
+scales: [city]
+# sources: the registry entry is filed as a candidate in awesome-fabcity-data. When it is in the node's vendored pin,
+# this line becomes
+#   sources: [environmental/bioregion/sentinel-2-l2a]
+env:
+  # No padding after `=`: a value pasted after spaces makes the line `VAR= value`, which shell reads as a command.
+  - "# paddy: centre of the square as lat,lon. Blank means this node's own point."
+  - "PADDY_AT="
+  - "# paddy: half-width of the square in km, at most 10. Blank keeps the pack idle. About 0.4 GB a year at 3 km, 2.7 GB at 10."
+  - "PADDY_RADIUS_KM="
+  - "# paddy: on where the fields stand flooded in open basins (a delta, the Ebro); off for terraced or tropical sawah"
+  - "PADDY_FLOOD_CHECK="
+  - "# paddy: the most Sentinel-2 scenes read in a day, one per poll"
+  - "PADDY_READS=4"
+agent_scripts: [verify]
+needs: >-
+  Network to planetarycomputer.microsoft.com and its blob storage. No key, no account. One STAC search a day and one
+  scene per poll, at most PADDY_READS a day: about 3.5 MB a scene for a 3 km square, 23 MB at 10 km, more with the
+  flood check. Filling 25 months takes a few weeks at that pace, or one `planetai run paddy backfill`: on node #1 a 3 km square was
+  95 scenes, about 0.35 GB and 18 minutes, and 23 MB on disk.
+attribution: >-
+  Contains modified Copernicus Sentinel data <years read>, read through Microsoft Planetary Computer. The sensor's
+  `meta.attribution` carries the years.
+
+sections:
+  - id: paddy
+    stage: observe
+    title: { en: "Rice around this node, from Sentinel-2", id: "Sawah di sekitar node ini, dari Sentinel-2", es: "El arroz alrededor de este nodo, según Sentinel-2" }
+    order: 48
+    wall: true
+    note:
+      en: >-
+        The square the keeper chose, every 10 m pixel over 25 months. Rice is land that went bare and green at least
+        twice and was green in the last seven months. Lost is land that was green a year ago and has shown nothing
+        green for four months, a roof or ground scraped bare; the satellite cannot tell which. The hectares wait
+        until the 25 months are read.
+      id: >-
+        Kotak yang dipilih pengelola node, setiap piksel 10 m selama 25 bulan. Sawah adalah lahan yang setidaknya dua
+        kali gundul lalu hijau, dan hijau dalam tujuh bulan terakhir. Hilang adalah lahan yang hijau setahun lalu dan
+        empat bulan ini tidak hijau sama sekali, atap atau tanah yang dikupas; satelit tidak bisa membedakannya.
+        Angka hektare menunggu sampai 25 bulan terbaca.
+      es: >-
+        El cuadrado que eligió quien cuida el nodo, cada píxel de 10 m durante 25 meses. Arroz es la tierra que quedó
+        desnuda y volvió a verdear al menos dos veces, y estuvo verde en los últimos siete meses. Perdida es la tierra
+        que estaba verde hace un año y lleva cuatro meses sin nada verde, un tejado o suelo raspado; el satélite no
+        distingue cuál. Las hectáreas esperan a que estén leídos los 25 meses.
+    readouts:
+      - { metric: rice_ha, sensor_id: paddy-square, unit: ha, dp: 0, label: { en: rice, id: sawah, es: arroz } }
+      - { metric: rice_lost_ha, sensor_id: paddy-square, unit: ha, dp: 1,
+          label: { en: "green a year ago, bare or built now", id: "hijau setahun lalu, kini gundul atau terbangun", es: "verde hace un año, hoy desnuda o construida" } }
+      - { metric: rice_bare_pct, sensor_id: paddy-square, unit: "%", dp: 0,
+          label: { en: rice bare or flooded at its last clear look, id: sawah gundul atau tergenang saat terakhir terlihat, es: arroz desnudo o inundado en la última vista despejada } }
+      - { metric: months_read, sensor_id: paddy-square, unit: of 25, dp: 0, label: { en: months read, id: bulan terbaca, es: meses leídos } }
+
+# Land is a context issue: it reads these in its sentence and draws no line. The earth pack owns it, so a node
+# without earth leaves them out with a line in its log, and the section above still carries them.
+readouts:
+  land:
+    - { metric: rice_ha, sensor_id: paddy-square, unit: ha, dp: 0,
+        label: { en: Rice in the keeper's square (Sentinel-2), id: Sawah di kotak pilihan pengelola (Sentinel-2), es: Arroz en el cuadrado elegido (Sentinel-2) } }
+    - { metric: rice_lost_ha, sensor_id: paddy-square, unit: ha, dp: 1,
+        label: { en: "Land green a year ago, bare or built now", id: "Lahan hijau setahun lalu, kini gundul atau terbangun", es: "Tierra verde hace un año, hoy desnuda o construida" } }
+    - { metric: clear_days, sensor_id: paddy-square, unit: days, dp: 0,
+        label: { en: Days since a clear look at the square, id: Hari sejak kotak terakhir terlihat jelas, es: Días desde la última vista despejada } }
