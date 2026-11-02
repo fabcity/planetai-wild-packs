@@ -129,9 +129,10 @@ A spot is **good tomorrow** when at least two hours in a row pass. Its window is
 weight is swell height² × period averaged over that run (a rough measure of swell energy), which orders the spots
 in the message.
 
-Every number here (10 s, 25 km/h, 8 km/h, the thirds, two hours) is a first guess. Tomas gave three days to check
-them against: Uluwatu good on Wednesday 28 October and on Sunday 1 November, and Green Bowl "not so good" on
-1 November. A throwaway run of this rule over 27 October to 2 November (Open-Meteo's archive of its own forecasts)
+Every number here (10 s, 25 km/h, 8 km/h, the thirds, two hours) is a first guess. Tomas passed on three days he had
+heard about, not seen ("do not trust too much in my judgement, I did not see the waves myself"): Uluwatu good on
+Wednesday 28 October and on Sunday 1 November, and Green Bowl "not so good" on 1 November. They are a check that the
+rule is not absurd, nothing more. A throwaway run of this rule over 27 October to 2 November (Open-Meteo's archive of its own forecasts)
 gave, with the longest passing run in hours:
 
 | model, floor, Uluwatu min | Uluwatu 27 28 29 30 31 · 1 2 | Green Bowl 1 Nov | all three right |
@@ -143,10 +144,11 @@ gave, with the longest passing run in hours:
 | **GFS 10 s, 0.7 m** | **14 8 11 8 – · 8 9** | **–** | **yes, with long windows** |
 | GFS 12 s, 0.7 m | 14 5 – – – · 8 9 | – | yes |
 
-The design takes GFS Wave at 10 s with Uluwatu from 0.7 m. It is right on all three days with long windows, and its
-numbers are the kind Windy shows. Its weakness is that Uluwatu passes six days of seven, because there is no day
-yet that Tomas calls bad at Uluwatu. Three days are a sanity check, not a calibration: the first weeks of messages
-are the calibration, and a day Uluwatu was not worth it is the next most useful fact (§9).
+The design takes GFS Wave at 10 s with Uluwatu from 0.7 m. The reason to prefer GFS does not rest on those days:
+its swell numbers are the kind Windy shows, so the message and the screen it links to agree. The 0.7 m floor does
+lean on a second-hand report, and it is also what a long-period swell at Uluwatu needs: 0.8 m at 14 s shoals into
+real waves on that reef. The weakness is that Uluwatu passes six days of seven. The calibration is the first weeks
+of messages checked against the water by someone who went (§9).
 
 Green Bowl failed on 1 November for two reasons: the tide was low until 11:00, and the south-east trade, which is
 onshore on that south-facing coast, reached 14–20 km/h from mid-morning.
@@ -209,8 +211,8 @@ re-fetched at build time with `start_date`/`end_date`):
 - a low-tide hour fails at a mid-and-high spot and passes at Uluwatu;
 - a 12 s swell inside the window passes, an 8 s one does not, one from outside the window does not;
 - one passing hour alone is not a window, two in a row are;
-- 28 October and 1 November: Uluwatu is good, with a window that includes the morning; 1 November: Green Bowl is
-  not;
+- the reported days as regression fixtures, not as truth: 28 October and 1 November, Uluwatu good with a window
+  that includes the morning; 1 November, Green Bowl not;
 - when only the secondary swell is in a spot's window, its height and period are the ones stored;
 - the rule's SQL, run on duckdb or the node's test database as the other packs do, returns no row at 16:00, one row
   at 17:00 with at most three spots, and none when no spot is good.
@@ -218,8 +220,9 @@ re-fetched at build time with `start_date`/`end_date`):
 ## 9. Open
 
 - **Spots and their numbers (Tomas).** The §4 table is a draft. Which breaks, and what each really needs.
-- **A bad day at Uluwatu (Tomas).** Not needed to build, but it is the first thing that would tighten the rule:
-  every known day so far is a good one there.
+- **How the rule learns (Tomas).** Nobody has yet checked the rule against waves they saw. Either Tomas (or whoever
+  surfs from the house) tells the bot how it was after going, and v1 records that next to the call it answered, or
+  that waits and the first weeks are judged by reading the stored calls back.
 - **17:00 (my call).** Late enough that tomorrow's forecast has settled, early enough to plan the evening. Fixed in
   the rule's SQL; moving it is a one-line edit.
 - **GFS Wave at 10 s, Uluwatu from 0.7 m, other sizes × 0.75 (my call),** right on all three of Tomas's days (§5).
