@@ -4,7 +4,8 @@
 about personal decision at this level, as a personal node", then "for me is enough to get a message in the bot
 suggesting where surf could be good, and suggesting checking more details about them", and "Evening before".*
 
-**Status: proposed 2 November 2026. Nothing built.** It needs one small change in the node (§6a). §9 lists what
+**Status: proposed and built 2 November 2026, in `packs/surf/`, from the draft spot table (Tomas: "Build from the
+draft"). The node change (§6a) is on planetai-node branch `act-placeholder-2026-11-02`. Not yet run on node #1.** §9 lists what
 is still open, §10 says what done means.
 
 ## 1. What it is for

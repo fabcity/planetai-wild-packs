@@ -97,5 +97,16 @@
     "licence": "Apache-2.0 (code); Copernicus Sentinel data, free and open with attribution (data)",
     "tested_with": "v0.90.0",
     "status": "listed"
+  },
+  {
+    "id": "surf",
+    "name": "Surf tomorrow",
+    "source": "fabcity/planetai-wild-packs/packs/surf",
+    "author": "Tomas Diez (Fab City Foundation)",
+    "reads": "At 17:00, up to three surf spots that could be good tomorrow, from Open-Meteo's GFS Wave swell, sea level and wind, each with a Windy link, and a journal of how each spot was (key-free)",
+    "kind": "code",
+    "licence": "Apache-2.0 (code); Open-Meteo data CC BY 4.0, NOAA GFS Wave, Copernicus Marine / MeteoFrance (data)",
+    "tested_with": "not yet run on a node",
+    "status": "listed"
   }
 ]
