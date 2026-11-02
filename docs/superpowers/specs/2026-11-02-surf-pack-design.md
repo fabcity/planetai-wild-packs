@@ -86,22 +86,25 @@ wind directions that blow offshore there, a size range for the primary swell in 
 (`low`, `mid`, `high`, any subset).
 
 **The table below is a first draft from general knowledge, not from anyone who surfs these breaks.** Tomas corrects
-it before it is built; it is the part of the pack most likely to be wrong.
+it before it is built; it is the part of the pack most likely to be wrong. Sizes are in GFS Wave's terms, which read
+about three quarters of MFWAM's heights on both of Tomas's good days (1.54 against 2.06 m, 0.80 against 1.04 m), and
+so likely lower than what a surfer would call the size from the beach. Uluwatu's 0.7 m floor is set from 1 November
+(§5); the others are the draft scaled by 0.75.
 
 | id | name | lat, lon | swell from | offshore wind from | swell m | tide |
 |---|---|---|---|---|---|---|
-| uluwatu | Uluwatu | -8.8150, 115.0870 | 180–250 | 60–150 | 1.0–4.0 | low, mid, high |
-| padang-padang | Padang Padang | -8.8110, 115.1000 | 190–250 | 60–150 | 1.8–4.0 | mid, high |
-| bingin | Bingin | -8.8055, 115.1125 | 190–250 | 60–150 | 1.0–2.5 | mid, high |
-| balangan | Balangan | -8.7905, 115.1220 | 190–250 | 60–150 | 1.0–2.5 | mid, high |
-| kuta-reef | Kuta Reef | -8.7400, 115.1550 | 180–250 | 45–135 | 1.0–3.0 | mid, high |
-| canggu | Canggu (Batu Bolong) | -8.6595, 115.1300 | 190–250 | 20–110 | 0.8–2.5 | mid, high |
-| medewi | Medewi | -8.4170, 114.8040 | 190–250 | 0–90 | 1.0–3.0 | mid |
-| nusa-dua | Nusa Dua | -8.8050, 115.2370 | 150–220 | 240–320 | 1.5–4.0 | low, mid, high |
-| serangan | Serangan | -8.7300, 115.2400 | 150–210 | 240–320 | 0.8–2.0 | mid, high |
-| sanur | Sanur Reef | -8.6900, 115.2700 | 150–210 | 240–330 | 1.2–3.0 | mid, high |
-| keramas | Keramas | -8.5550, 115.4310 | 150–220 | 240–340 | 1.0–2.5 | mid, high |
-| green-bowl | Green Bowl | -8.8475, 115.1700 | 170–230 | 300–30 | 1.0–3.0 | mid, high |
+| uluwatu | Uluwatu | -8.8150, 115.0870 | 180–250 | 60–150 | 0.7–3.0 | low, mid, high |
+| padang-padang | Padang Padang | -8.8110, 115.1000 | 190–250 | 60–150 | 1.4–3.0 | mid, high |
+| bingin | Bingin | -8.8055, 115.1125 | 190–250 | 60–150 | 0.8–1.9 | mid, high |
+| balangan | Balangan | -8.7905, 115.1220 | 190–250 | 60–150 | 0.8–1.9 | mid, high |
+| kuta-reef | Kuta Reef | -8.7400, 115.1550 | 180–250 | 45–135 | 0.8–2.2 | mid, high |
+| canggu | Canggu (Batu Bolong) | -8.6595, 115.1300 | 190–250 | 20–110 | 0.6–1.9 | mid, high |
+| medewi | Medewi | -8.4170, 114.8040 | 190–250 | 0–90 | 0.8–2.2 | mid |
+| nusa-dua | Nusa Dua | -8.8050, 115.2370 | 150–220 | 240–320 | 1.1–3.0 | low, mid, high |
+| serangan | Serangan | -8.7300, 115.2400 | 150–210 | 240–320 | 0.6–1.5 | mid, high |
+| sanur | Sanur Reef | -8.6900, 115.2700 | 150–210 | 240–330 | 0.9–2.2 | mid, high |
+| keramas | Keramas | -8.5550, 115.4310 | 150–220 | 240–340 | 0.8–1.9 | mid, high |
+| green-bowl | Green Bowl | -8.8475, 115.1700 | 170–230 | 300–30 | 0.8–2.2 | mid, high |
 
 `SURF_SPOTS` (setting, comma-separated ids) picks the spots the keeper cares about. Blank means the pack idles and
 writes nothing, so it never calls Open-Meteo for a node that installed it by accident. Node #1 would set all of
@@ -126,21 +129,24 @@ A spot is **good tomorrow** when at least two hours in a row pass. Its window is
 weight is swell height² × period averaged over that run (a rough measure of swell energy), which orders the spots
 in the message.
 
-Every number here (10 s, 25 km/h, 8 km/h, the thirds, two hours) is a first guess. Tomas gave two days to check
-them against: Uluwatu good on Wednesday 28 October, and Green Bowl "not so good" on Sunday 1 November. A throwaway
-run of this rule over 27 October to 2 November (Open-Meteo's archive of its own forecasts) gave:
+Every number here (10 s, 25 km/h, 8 km/h, the thirds, two hours) is a first guess. Tomas gave three days to check
+them against: Uluwatu good on Wednesday 28 October and on Sunday 1 November, and Green Bowl "not so good" on
+1 November. A throwaway run of this rule over 27 October to 2 November (Open-Meteo's archive of its own forecasts)
+gave, with the longest passing run in hours:
 
-| floor, model | Uluwatu good on | Green Bowl good on | both of Tomas's days right |
+| model, floor, Uluwatu min | Uluwatu 27 28 29 30 31 · 1 2 | Green Bowl 1 Nov | all three right |
 |---|---|---|---|
-| 10 s, MFWAM | 1, 2 Nov | none | no: misses 28 Oct (8.8 s) |
-| 9 s, MFWAM | 27, 28 Oct; 1, 2 Nov | none | yes, but 28 Oct passes by two hours |
-| 8 s, MFWAM | 27, 28 Oct; 1, 2 Nov | 2 Nov | yes |
-| **10 s, GFS Wave** | **27–30 Oct** | **none** | **yes, 05:00–12:00 on 28 Oct** |
-| 12 s, GFS Wave | 27, 28 Oct | none | yes |
+| MFWAM 10 s, 1.0 m | – – – – – · 3 7 | – | no, misses 28 Oct (8.8 s) |
+| MFWAM 9 s, 1.0 m | 8 2 – – – · 5 8 | – | yes, but 28 Oct by two hours |
+| MFWAM 8 s, 1.0 m | 14 8 – – – · 8 9 | – | yes; also calls Green Bowl good on 2 Nov |
+| GFS 10 s, 1.0 m | 14 8 11 7 – · – – | – | no, misses 1 Nov (0.80 m at 13.8 s) |
+| **GFS 10 s, 0.7 m** | **14 8 11 8 – · 8 9** | **–** | **yes, with long windows** |
+| GFS 12 s, 0.7 m | 14 5 – – – · 8 9 | – | yes |
 
-The two models agree on Tomas's days and disagree on the rest: GFS has the long-period swell running from 27 to 30
-October and fading, MFWAM puts Uluwatu's good days on 1 and 2 November. One more day Tomas remembers at Uluwatu,
-30 October or 1 November, decides between them (§9). The design goes with GFS at 10 s until then.
+The design takes GFS Wave at 10 s with Uluwatu from 0.7 m. It is right on all three days with long windows, and its
+numbers are the kind Windy shows. Its weakness is that Uluwatu passes six days of seven, because there is no day
+yet that Tomas calls bad at Uluwatu. Three days are a sanity check, not a calibration: the first weeks of messages
+are the calibration, and a day Uluwatu was not worth it is the next most useful fact (§9).
 
 Green Bowl failed on 1 November for two reasons: the tide was low until 11:00, and the south-east trade, which is
 onshore on that south-facing coast, reached 14–20 km/h from mid-morning.
@@ -203,7 +209,8 @@ re-fetched at build time with `start_date`/`end_date`):
 - a low-tide hour fails at a mid-and-high spot and passes at Uluwatu;
 - a 12 s swell inside the window passes, an 8 s one does not, one from outside the window does not;
 - one passing hour alone is not a window, two in a row are;
-- 28 October: Uluwatu is good, with a window that includes the morning; 1 November: Green Bowl is not;
+- 28 October and 1 November: Uluwatu is good, with a window that includes the morning; 1 November: Green Bowl is
+  not;
 - when only the secondary swell is in a spot's window, its height and period are the ones stored;
 - the rule's SQL, run on duckdb or the node's test database as the other packs do, returns no row at 16:00, one row
   at 17:00 with at most three spots, and none when no spot is good.
@@ -211,11 +218,11 @@ re-fetched at build time with `start_date`/`end_date`):
 ## 9. Open
 
 - **Spots and their numbers (Tomas).** The §4 table is a draft. Which breaks, and what each really needs.
-- **GFS or MFWAM (Tomas, one more day).** How Uluwatu was on Friday 30 October or on Sunday 1 November. GFS says
-  good on the 30th and not on the 1st; MFWAM says the opposite.
+- **A bad day at Uluwatu (Tomas).** Not needed to build, but it is the first thing that would tighten the rule:
+  every known day so far is a good one there.
 - **17:00 (my call).** Late enough that tomorrow's forecast has settled, early enough to plan the evening. Fixed in
   the rule's SQL; moving it is a one-line edit.
-- **The default period, 10 s on GFS Wave (my call),** right on both of Tomas's days (§5).
+- **GFS Wave at 10 s, Uluwatu from 0.7 m, other sizes × 0.75 (my call),** right on all three of Tomas's days (§5).
 - **Secondary swell (my call):** the in-window swell with more energy is the one that counts (§5.1).
 - **`derived`, not `private` (my call),** so the bot can talk about it (§6).
 
