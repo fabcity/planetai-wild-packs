@@ -44,7 +44,14 @@ looking at the water would not make better.
   counted in ρ; a surf tip is not an ask the node should measure itself by. `warn` reaches Telegram when
   `ALERT_LEVEL` is `warn` or `info`, and node #1 runs `ALERT_LEVEL=warn`. A keeper on the default `act` will not get
   the message, and the README says so.
-- **Standard library only.** Two HTTP calls and some arithmetic. No `pip:` line, no image rebuild.
+- **Swell Scope's way of working, not its data.** Tomas backed Swell Scope (swell-scope.com), a surf app and journal
+  by Chris Mederos, and shared the forecasting guide its backers got, written by the surf coach Grant ("Surfing with
+  Grant"). The pack takes three things from them. Swell energy is the size that counts, not height. The secondary
+  swell matters. And a spot is learned from a journal of the conditions on the days you surfed it, which Grant keeps
+  as a note on his phone. Swell Scope gives no ratings and says it will not train a model on its users' sessions.
+  This pack does name spots, because that is what Tomas asked for, but it shows every number behind each one and
+  keeps the learning with the person (§6). Swell Scope's own data is not used: its terms forbid redistributing it.
+- **Standard library only.** A few HTTP calls and some arithmetic. No `pip:` line, no image rebuild.
 
 ## 3. The data and its licence
 
@@ -83,29 +90,35 @@ is a requirement, not a nicety.
 
 A `spots.yml` in the pack. Each spot has a name, its coordinates (on the break, used for the wind call and the
 Windy link; the marine call snaps to the nearest sea cell by itself), the directions of swell it is open to, the
-wind directions that blow offshore there, a size range for the primary swell in metres, and the tides it works on
-(`low`, `mid`, `high`, any subset).
+wind directions that blow offshore there, a range of swell power in kW per metre of crest, the tides it works on
+(`low`, `mid`, `high`, any subset), and optional `aliases` (the names people use, such as "Ulu" or "Padang") that
+the journal (§6) matches in a note.
 
 **The table below is a first draft from general knowledge, not from anyone who surfs these breaks.** Tomas corrects
-it before it is built; it is the part of the pack most likely to be wrong. Sizes are in GFS Wave's terms, which read
-about three quarters of MFWAM's heights on both of Tomas's good days (1.54 against 2.06 m, 0.80 against 1.04 m), and
-so likely lower than what a surfer would call the size from the beach. Uluwatu's 0.7 m floor is set from 1 November
-(§5); the others are the draft scaled by 0.75.
+it before it is built; it is the part of the pack most likely to be wrong.
 
-| id | name | lat, lon | swell from | offshore wind from | swell m | tide |
+**Power, not height.** Grant's guide calls energy "arguably the most accurate/useful forecasting measurement", and
+gives it as P = ρg²/(64π)·H²·T, the power a swell carries per metre of crest. With sea water that is 0.49·H²·T kW/m.
+It settles the case height could not: on 1 November GFS put Uluwatu at 0.80 m and 13.8 s, which is 4.3 kW/m, and on
+28 October at 1.54 m and 12.1 s, which is 14 kW/m. Both are real swells. A height floor had to drop to 0.7 m to let
+the first one in; a power floor of 4 kW/m does it without pretending 0.7 m is a size. The ranges below are the
+first draft's heights, read in GFS terms and turned into power at 12 s, then rounded. Uluwatu's 4 kW/m floor sits
+right at the edge of the 1 November report, which is second-hand.
+
+| id | name | lat, lon | swell from | offshore wind from | kW/m | tide |
 |---|---|---|---|---|---|---|
-| uluwatu | Uluwatu | -8.8150, 115.0870 | 180–250 | 60–150 | 0.7–3.0 | low, mid, high |
-| padang-padang | Padang Padang | -8.8110, 115.1000 | 190–250 | 60–150 | 1.4–3.0 | mid, high |
-| bingin | Bingin | -8.8055, 115.1125 | 190–250 | 60–150 | 0.8–1.9 | mid, high |
-| balangan | Balangan | -8.7905, 115.1220 | 190–250 | 60–150 | 0.8–1.9 | mid, high |
-| kuta-reef | Kuta Reef | -8.7400, 115.1550 | 180–250 | 45–135 | 0.8–2.2 | mid, high |
-| canggu | Canggu (Batu Bolong) | -8.6595, 115.1300 | 190–250 | 20–110 | 0.6–1.9 | mid, high |
-| medewi | Medewi | -8.4170, 114.8040 | 190–250 | 0–90 | 0.8–2.2 | mid |
-| nusa-dua | Nusa Dua | -8.8050, 115.2370 | 150–220 | 240–320 | 1.1–3.0 | low, mid, high |
-| serangan | Serangan | -8.7300, 115.2400 | 150–210 | 240–320 | 0.6–1.5 | mid, high |
-| sanur | Sanur Reef | -8.6900, 115.2700 | 150–210 | 240–330 | 0.9–2.2 | mid, high |
-| keramas | Keramas | -8.5550, 115.4310 | 150–220 | 240–340 | 0.8–1.9 | mid, high |
-| green-bowl | Green Bowl | -8.8475, 115.1700 | 170–230 | 300–30 | 0.8–2.2 | mid, high |
+| uluwatu | Uluwatu | -8.8150, 115.0870 | 180–250 | 60–150 | 4–50 | low, mid, high |
+| padang-padang | Padang Padang | -8.8110, 115.1000 | 190–250 | 60–150 | 12–50 | mid, high |
+| bingin | Bingin | -8.8055, 115.1125 | 190–250 | 60–150 | 4–20 | mid, high |
+| balangan | Balangan | -8.7905, 115.1220 | 190–250 | 60–150 | 4–20 | mid, high |
+| kuta-reef | Kuta Reef | -8.7400, 115.1550 | 180–250 | 45–135 | 4–30 | mid, high |
+| canggu | Canggu (Batu Bolong) | -8.6595, 115.1300 | 190–250 | 20–110 | 2–20 | mid, high |
+| medewi | Medewi | -8.4170, 114.8040 | 190–250 | 0–90 | 4–30 | mid |
+| nusa-dua | Nusa Dua | -8.8050, 115.2370 | 150–220 | 240–320 | 7–50 | low, mid, high |
+| serangan | Serangan | -8.7300, 115.2400 | 150–210 | 240–320 | 2–13 | mid, high |
+| sanur | Sanur Reef | -8.6900, 115.2700 | 150–210 | 240–330 | 5–30 | mid, high |
+| keramas | Keramas | -8.5550, 115.4310 | 150–220 | 240–340 | 4–20 | mid, high |
+| green-bowl | Green Bowl | -8.8475, 115.1700 | 170–230 | 300–30 | 4–30 | mid, high |
 
 `SURF_SPOTS` (setting, comma-separated ids) picks the spots the keeper cares about. Blank means the pack idles and
 writes nothing, so it never calls Open-Meteo for a node that installed it by accident. Node #1 would set all of
@@ -116,19 +129,25 @@ them.
 For each watched spot and each hour of tomorrow from 05:00 to 18:00 local, the hour **passes** when all four hold:
 
 1. **Swell.** Of the primary and secondary swell, take those that come from inside the spot's window with a period
-   of at least `SURF_MIN_PERIOD` seconds (default 10); if both do, the one with the larger height² × period. That
-   swell's height must be inside the spot's range, and its height, period and direction are the ones the window's
-   weight and the message use. A big swell from outside the window never counts.
+   of at least `SURF_MIN_PERIOD` seconds (default 10); if both do, the one with more power. That swell's power must
+   be inside the spot's range, and its height, period, direction and power are the ones the window and the message
+   use. A big swell from outside the window never counts. The period floor stays beside the power range: a short,
+   steep wind sea can carry real power and still be the local slop the guide warns about.
 2. **Wind.** Either it blows from inside the spot's offshore arc at no more than 25 km/h, or it is under 8 km/h from
    anywhere (glassy).
 3. **Tide.** The sea level that hour, placed within that local day's lowest and highest, falls in a third the spot
    accepts (bottom third low, middle mid, top third high).
-4. **Not junk.** `wind_wave_height` is less than half the height of the swell chosen in 1, so a wind-blown sea does not pass as a
-   swell.
+4. **Not junk.** `wind_wave_height` is less than half the height of the swell chosen in 1, so a wind-blown sea does
+   not pass as a swell.
 
-A spot is **good tomorrow** when at least two hours in a row pass. Its window is the longest such run, and its
-weight is swell height² × period averaged over that run (a rough measure of swell energy), which orders the spots
-in the message.
+**A mixed sea is flagged, not failed.** The guide says a second swell from another angle can fill the gaps between
+sets or cross up into chop, and that only the spot decides which. So when both swells come from inside the window,
+both at 10 s or more, the weaker carries at least a quarter of the stronger's power, and their directions are 20° or
+more apart, the hour still passes and the message says "mixed" with the second swell's numbers. The journal is where
+Tomas learns whether a spot likes it.
+
+A spot is **good tomorrow** when at least two hours in a row pass. Its window is the longest such run, and the
+power averaged over that run orders the spots in the message.
 
 Every number here (10 s, 25 km/h, 8 km/h, the thirds, two hours) is a first guess. Tomas passed on three days he had
 heard about, not seen ("do not trust too much in my judgement, I did not see the waves myself"): Uluwatu good on
@@ -145,11 +164,14 @@ gave, with the longest passing run in hours:
 | **GFS 10 s, 0.7 m** | **14 8 11 8 – · 8 9** | **–** | **yes, with long windows** |
 | GFS 12 s, 0.7 m | 14 5 – – – · 8 9 | – | yes |
 
-The design takes GFS Wave at 10 s with Uluwatu from 0.7 m. The reason to prefer GFS does not rest on those days:
-its swell numbers are the kind Windy shows, so the message and the screen it links to agree. The 0.7 m floor does
-lean on a second-hand report, and it is also what a long-period swell at Uluwatu needs: 0.8 m at 14 s shoals into
-real waves on that reef. The weakness is that Uluwatu passes six days of seven. The calibration is the first weeks
-of messages checked against the water by someone who went (§9).
+Run again with power instead of height (Uluwatu 4–50 kW/m, Green Bowl 4–30), GFS at 10 s gives the same verdicts
+for Uluwatu, Green Bowl still not good on 1 November, and Green Bowl good on 2 November.
+
+The design takes GFS Wave at 10 s with power ranges. The reason to prefer GFS does not rest on those days: its swell
+numbers are the kind Windy shows, so the message and the screen it links to agree. Uluwatu's 4 kW/m floor does lean
+on a second-hand report, and it is also what a long-period swell at Uluwatu needs: 0.8 m at 14 s shoals into real
+waves on that reef. The weakness is that Uluwatu passes six days of seven. The calibration is the journal, the first
+weeks of messages checked against the water by someone who went (§6, §9).
 
 Green Bowl failed on 1 November for two reasons: the tide was low until 11:00, and the south-east trade, which is
 onshore on that south-facing coast, reached 14–20 km/h from mid-morning.
@@ -167,8 +189,9 @@ trade wind fills in. The pack will under-call early sessions on some days.
 - **What it stores.** One sensor per watched spot, `surf-<id>`, `kind: model`, `scale: bioregion`, `local: false`,
   with the spot's own coordinates and name. Each fetch writes one row per spot per metric, **timestamped at the fetch**,
   each describing the next local day: `surf_good` (1 or 0), `surf_from_h` and `surf_to_h` (the window, local hours),
-  `surf_swell_m`, `surf_period_s`, `surf_swell_dir`, `surf_wind_kmh`, `surf_wind_dir`, `surf_tide` (0, 1, 2 for low,
-  mid, high at the window's start) and `surf_weight`. Fetch time, not tomorrow's midnight, because `readings` is
+  `surf_swell_m`, `surf_period_s`, `surf_swell_dir`, `surf_kw` (power, kW/m, averaged over the window),
+  `surf_mixed` (1 or 0) with `surf_swell2_m`, `surf_period2_s`, `surf_swell2_dir`, `surf_wind_kmh`,
+  `surf_wind_dir` and `surf_tide` (0, 1, 2 for low, mid, high at the window's start). Fetch time, not tomorrow's midnight, because `readings` is
   unique on (sensor, metric, ts) and the insert is `ON CONFLICT DO NOTHING`: a row stamped at a fixed future time
   would keep the first forecast of the day and never take a later one. Hourly detail is not stored: the message needs
   the window, and Windy shows the hours.
@@ -178,15 +201,15 @@ trade wind fills in. The pack will under-call early sessions on some days.
 - **rules.yml, one rule.** `surf_tomorrow`, `level: warn`, `cooldown_minutes: 720`. Its SQL returns one row
   (`sensor_id: 'surf'`) only when the local hour is 17 (the rule session runs in the node's timezone, `app/db.py`;
   the hour is fixed in the SQL because rules run as `planetai_ro`, which cannot read `settings`) and at least one
-  spot's newest rows, written today, have `surf_good = 1`. The row carries the top three spots by `surf_weight`
+  spot's newest rows, written today, have `surf_good = 1`. The row carries the top three spots by `surf_kw`
   already joined into one text column, newlines included (the template is filled with `str.format` and Telegram gets
-  plain text), each line with the name, window, swell, wind, tide and a Windy link built from the sensor's
-  coordinates. Quiet hours do not touch 17:00.
+  plain text), each line with the name, window, swell, power, the second swell when mixed, wind, tide and a Windy
+  link built from the sensor's coordinates. All of it, as Grant's first piece of advice is to check every number. Quiet hours do not touch 17:00.
 - **Message**, en, es and id, roughly:
 
   > 🌊 Surf could be good tomorrow:
-  > • Keramas 6–9: 1.6 m at 12 s from the S, wind 6 km/h W (offshore), mid tide → windy.com/-8.555/115.431?swell1,…
-  > • Nusa Dua 7–10: 2.1 m at 12 s, wind 9 km/h NW, high tide → …
+  > • Keramas 6–9: 1.6 m at 12 s from the S, 15 kW/m, wind 6 km/h W (offshore), mid tide → windy.com/-8.555/115.431?swell1,…
+  > • Nusa Dua 7–10: 2.1 m at 12 s, 26 kW/m, mixed with 0.9 m at 15 s from the SW, wind 9 km/h NW, high tide → …
   >
   > A model screen, not a surf report. Check them before you go.
   > If you go, tell me how it was: /act 812 <your words>
@@ -200,10 +223,17 @@ trade wind fills in. The pack will under-call early sessions on some days.
   it cannot print its own id, and `act_hint()` is only added to the dashboard's test alert. That needs one small
   core change (§6a). Free text to the bot ("Uluwatu was firing") is not relied on: node #1's bot answers through a
   remote model, and finding last night's alert and calling `act` correctly is not something to depend on yet.
-- **A `review` script** (`agent_scripts: [review]`, so a connected agent can run it as well as `planetai run surf
-  review`). It prints each evening's call, the spots and windows it named, and every note that answered it, newest
-  first. That table is how `spots.yml` gets tuned, by Tomas or by an agent he asks. The pack does not change its own
-  thresholds from the notes: a note is free text, and the people reading it are better at it than a parser.
+- **The journal, a `review` script** (`agent_scripts: [review]`, so a connected agent can run it as well as
+  `planetai run surf review`). This is Grant's phone note, built from real sessions. It reads the surf alerts and
+  their answers from the node's own `/alerts` and `/actions` (both answer the machine itself without a token). In
+  each note it finds the spots named, by id, name or alias; a note may name a spot the message did not, so a good
+  day the pack under-called is recorded too, as long as there was a message that week to answer. For each spot and
+  the morning the note is about (the day after the alert), it fetches that day's swell (both partitions), power,
+  wind and tide from Open-Meteo's archive, the same calls and the same `start_date`/`end_date` the 2 November check
+  used, so nothing extra is stored. It prints the result grouped by spot, newest first: the words, then the numbers
+  for the hours of the window, or 06:00 to 10:00 when the message named no window there. Reading that table is how
+  `spots.yml` gets tuned, by Tomas or by an agent he asks. The pack does not change its own thresholds from the notes:
+  a note is free text, and the people reading it are better at it than a parser.
 - **No section, no issue, no readout** in v1. The message is the surface, because that is where Tomas said he wants
   it. A section on Now can come later if the message turns out not to be enough.
 
@@ -224,8 +254,9 @@ it too.
 - Publishing anything to the network or the registry beyond the `sources:` line.
 - Tide tables from a harbour authority. The model's tide is coarse but it is the same everywhere the pack runs.
 - Tuning thresholds from the notes automatically (§6, the `review` script is for people).
-- Feedback on days the pack stayed silent. With no message there is no alert to answer, so a good day the pack missed
-  can't be recorded in v1. If misses turn out to matter, a quiet `info` row each evening would give them an id.
+- Feedback on days with no message at all that week. A note can name any spot (§6), but it needs an alert to answer.
+  If that turns out to matter, a quiet `info` row each evening would give every day an id.
+- Swell Scope's model, ratings or data, and any machine learning on the notes.
 
 ## 8. Tests
 
@@ -242,7 +273,12 @@ re-fetched at build time with `start_date`/`end_date`):
 - when only the secondary swell is in a spot's window, its height and period are the ones stored;
 - the rule's SQL, run on duckdb or the node's test database as the other packs do, returns no row at 16:00, one row
   at 17:00 with at most three spots, and none when no spot is good;
-- `review` prints a stored call with an action's note under it, and a call with no answer as unanswered.
+- the mixed flag: two in-window swells 30° apart with the weaker at a third of the stronger's power are flagged, the
+  same at 10° apart are not, and neither changes whether the hour passes;
+- power: 0.80 m at 13.8 s is 4.3 kW/m and passes Uluwatu's 4–50, 1.54 m at 12.1 s is 14 kW/m;
+- `review`, from a stored alert, an action whose note says "Ulu good, Bingin closing out" and fixture archive
+  responses: both spots are found (one by alias), each printed under its own name with that morning's numbers, and
+  a call with no answer is listed as unanswered.
 
 In planetai-node, for §6a: a rule whose message has `{act}` stores and sends `/act <its own id>`, and a message
 without it is unchanged.
@@ -255,7 +291,9 @@ without it is unchanged.
   that waits and the first weeks are judged by reading the stored calls back.
 - **17:00 (my call).** Late enough that tomorrow's forecast has settled, early enough to plan the evening. Fixed in
   the rule's SQL; moving it is a one-line edit.
-- **GFS Wave at 10 s, Uluwatu from 0.7 m, other sizes × 0.75 (my call),** right on all three of Tomas's days (§5).
+- **GFS Wave at 10 s, with power ranges (my call),** right on all three of Tomas's reported days (§5). The ranges
+  are the draft heights turned into power; Uluwatu's 4 kW/m floor is the one number set from a report.
+- **Mixed-sea thresholds (my call):** a quarter of the power, 20° apart. A flag only.
 - **Secondary swell (my call):** the in-window swell with more energy is the one that counts (§5.1).
 - **`derived`, not `private` (my call),** so the bot can talk about it (§6).
 - **Feedback through `/act <id>`, with `{act}` added to core (my call, §6a).** The other ways in need either a
