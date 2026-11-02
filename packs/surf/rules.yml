@@ -1,0 +1,40 @@
+# One message, at 17:00, the evening before: up to three spots where surf could be good tomorrow.
+#
+# `warn`, not `act`: an act alert is an open ask counted in rho, and a surf tip is not something the node should
+# measure itself by. warn reaches Telegram where ALERT_LEVEL is warn or info (node #1 runs warn); on the default
+# `act` it is recorded and shown, not sent. The README says so.
+#
+# 17:00 is fixed here, not a setting: rules run as planetai_ro, which cannot read `settings`. The rule session runs in
+# the node's own time zone (app/db.py), so extract(hour from now()) and date_trunc('day', now()) are local.
+#
+# Only rows written today count, and per spot only the newest fetch: if the node was down all day, yesterday's
+# forecast for today is not tomorrow's surf, and nothing goes. The lines themselves are written by adapter.py into
+# each spot's sensor meta (surf.py builds them, with tests); this SQL only picks and joins.
+- id: surf_tomorrow
+  level: warn
+  cooldown_minutes: 720
+  sql: |
+    WITH g AS (
+      SELECT sensor_id, metric, value,
+             row_number() OVER (PARTITION BY sensor_id, metric ORDER BY ts DESC) AS n
+      FROM readings
+      WHERE sensor_id LIKE 'surf-%' AND metric IN ('surf_good', 'surf_kw')
+        AND ts >= date_trunc('day', now()) AND ts <= now()),
+    t AS (
+      SELECT sensor_id, max(value) FILTER (WHERE metric = 'surf_kw') AS kw
+      FROM g WHERE n = 1
+      GROUP BY sensor_id
+      HAVING max(value) FILTER (WHERE metric = 'surf_good') = 1
+      ORDER BY kw DESC
+      LIMIT 3)
+    SELECT 'surf' AS sensor_id,
+           string_agg(s.meta->>'line_en', chr(10) ORDER BY t.kw DESC) AS lines_en,
+           string_agg(s.meta->>'line_es', chr(10) ORDER BY t.kw DESC) AS lines_es,
+           string_agg(s.meta->>'line_id', chr(10) ORDER BY t.kw DESC) AS lines_id
+    FROM t JOIN sensors s ON s.sensor_id = t.sensor_id
+    WHERE extract(hour from now()) = 17
+    HAVING count(*) > 0
+  message:
+    en: "🌊 Surf could be good tomorrow:\n{lines_en}\n\nA model screen, not a surf report. Check them before you go.\nIf you go, tell me how it was: {act} <your words>"
+    es: "🌊 Mañana podría haber buenas olas:\n{lines_es}\n\nEs un filtro de un modelo, no un parte de surf. Míralas antes de ir.\nSi vas, cuéntame cómo estuvo: {act} <tus palabras>"
+    id: "🌊 Besok ombak bisa bagus di:\n{lines_id}\n\nIni saringan dari model, bukan laporan surf. Cek dulu sebelum berangkat.\nKalau jadi pergi, ceritakan bagaimana ombaknya: {act} <kata-katamu>"
