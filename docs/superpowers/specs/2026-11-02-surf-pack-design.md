@@ -204,7 +204,8 @@ trade wind fills in. The pack will under-call early sessions on some days.
   spot's newest rows, written today, have `surf_good = 1`. The row carries the top three spots by `surf_kw`
   already joined into one text column, newlines included (the template is filled with `str.format` and Telegram gets
   plain text), each line with the name, window, swell, power, the second swell when mixed, wind, tide and a Windy
-  link built from the sensor's coordinates. All of it, as Grant's first piece of advice is to check every number. Quiet hours do not touch 17:00.
+  link. The adapter writes each spot's finished line, in en, es and id, into the sensor's `meta` on every fetch
+  (the node upserts `meta` on each poll), so the wording is Python with tests and the SQL only picks and joins. All of it, as Grant's first piece of advice is to check every number. Quiet hours do not touch 17:00.
 - **Message**, en, es and id, roughly:
 
   > 🌊 Surf could be good tomorrow:
