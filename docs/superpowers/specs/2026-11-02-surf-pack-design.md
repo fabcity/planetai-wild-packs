@@ -4,7 +4,8 @@
 about personal decision at this level, as a personal node", then "for me is enough to get a message in the bot
 suggesting where surf could be good, and suggesting checking more details about them", and "Evening before".*
 
-**Status: proposed 2 November 2026. Nothing built.** §9 lists what is still open, §10 says what done means.
+**Status: proposed 2 November 2026. Nothing built.** It needs one small change in the node (§6a). §9 lists what
+is still open, §10 says what done means.
 
 ## 1. What it is for
 
@@ -187,10 +188,34 @@ trade wind fills in. The pack will under-call early sessions on some days.
   > • Keramas 6–9: 1.6 m at 12 s from the S, wind 6 km/h W (offshore), mid tide → windy.com/-8.555/115.431?swell1,…
   > • Nusa Dua 7–10: 2.1 m at 12 s, wind 9 km/h NW, high tide → …
   >
-  > A model screen at 8 km, not a surf report. Check them before you go.
+  > A model screen, not a surf report. Check them before you go.
+  > If you go, tell me how it was: /act 812 <your words>
 
+- **Feedback, after a session** (Tomas, 2 November: "Yes, in v1"). Whoever went replies with the alert's own
+  command, for example `/act 812 Uluwatu good, head high 6 to 8, Bingin closing out`. The node already has all of
+  this: the bot's `/act <id> <words>` handler (`app/agent_loop.py`) calls the `act` tool, which posts to
+  `/actions` with the person's words as the note, and refuses a placeholder. `/actions` takes any alert, not only
+  `act`-level ones, and ρ counts only `act`-level alerts, so a surf answer never moves ρ. The notes stay off every
+  share allowlist. What is missing is the number: a rule's message is formatted before its `alerts` row exists, so
+  it cannot print its own id, and `act_hint()` is only added to the dashboard's test alert. That needs one small
+  core change (§6a). Free text to the bot ("Uluwatu was firing") is not relied on: node #1's bot answers through a
+  remote model, and finding last night's alert and calling `act` correctly is not something to depend on yet.
+- **A `review` script** (`agent_scripts: [review]`, so a connected agent can run it as well as `planetai run surf
+  review`). It prints each evening's call, the spots and windows it named, and every note that answered it, newest
+  first. That table is how `spots.yml` gets tuned, by Tomas or by an agent he asks. The pack does not change its own
+  thresholds from the notes: a note is free text, and the people reading it are better at it than a parser.
 - **No section, no issue, no readout** in v1. The message is the surface, because that is where Tomas said he wants
   it. A section on Now can come later if the message turns out not to be enough.
+
+## 6a. The one core change
+
+In planetai-node, a rule's message may contain `{act}`, which becomes `act_hint(alert_id)`: `/act <id>` where the
+Telegram bot runs, `planetai act <id>` where it does not. In `run_rules` that means inserting the `alerts` row and
+then formatting the text with its id (an `UPDATE` of the row's `text`, or inserting with the id taken first from the
+sequence), a few lines. `tools/check_rules.py` must accept `{act}` as a placeholder no SQL returns, as it already
+does for `{line}`. Its own small pull request, with a test, run on node #1 before merge like every change. The surf
+pack then declares `requires: { node: ">=<that release>" }`. Any other pack whose message asks for an answer can use
+it too.
 
 ## 7. Not doing
 
@@ -198,8 +223,9 @@ trade wind fills in. The pack will under-call early sessions on some days.
 - Surf cams, crowds, or anything about other people at a break.
 - Publishing anything to the network or the registry beyond the `sources:` line.
 - Tide tables from a harbour authority. The model's tide is coarse but it is the same everywhere the pack runs.
-- Learning from feedback in v1. Later, Tomas's 👍 or 👎 on the message could tune the thresholds per spot; the node's
-  acted/measured loop is the natural home for that, and it needs nothing built now.
+- Tuning thresholds from the notes automatically (§6, the `review` script is for people).
+- Feedback on days the pack stayed silent. With no message there is no alert to answer, so a good day the pack missed
+  can't be recorded in v1. If misses turn out to matter, a quiet `info` row each evening would give them an id.
 
 ## 8. Tests
 
@@ -215,7 +241,11 @@ re-fetched at build time with `start_date`/`end_date`):
   that includes the morning; 1 November, Green Bowl not;
 - when only the secondary swell is in a spot's window, its height and period are the ones stored;
 - the rule's SQL, run on duckdb or the node's test database as the other packs do, returns no row at 16:00, one row
-  at 17:00 with at most three spots, and none when no spot is good.
+  at 17:00 with at most three spots, and none when no spot is good;
+- `review` prints a stored call with an action's note under it, and a call with no answer as unanswered.
+
+In planetai-node, for §6a: a rule whose message has `{act}` stores and sends `/act <its own id>`, and a message
+without it is unchanged.
 
 ## 9. Open
 
@@ -228,12 +258,16 @@ re-fetched at build time with `start_date`/`end_date`):
 - **GFS Wave at 10 s, Uluwatu from 0.7 m, other sizes × 0.75 (my call),** right on all three of Tomas's days (§5).
 - **Secondary swell (my call):** the in-window swell with more energy is the one that counts (§5.1).
 - **`derived`, not `private` (my call),** so the bot can talk about it (§6).
+- **Feedback through `/act <id>`, with `{act}` added to core (my call, §6a).** The other ways in need either a
+  model to find the alert by itself or a pack hook into the bot that the node does not have.
 
 ## 10. Done means
 
-1. `packs/surf/` with `pack.yaml`, `adapter.py`, `spots.yml`, `channels.yml`, `rules.yml`, `README.md` and tests;
-   `tools/check.py` green; a `packs.json` entry; CODEOWNERS.
-2. Node #1 runs it (standing rule: CI green, then node #1, then a real cycle, then merge): `SURF_SPOTS` set, one
+1. The `{act}` placeholder merged in planetai-node (§6a) and in a release, or node #1 on its branch for the test.
+2. `packs/surf/` with `pack.yaml`, `adapter.py`, `review.py`, `spots.yml`, `channels.yml`, `rules.yml`, `README.md`
+   and tests; `tools/check.py` green; a `packs.json` entry; CODEOWNERS.
+3. Node #1 runs it (standing rule: CI green, then node #1, then a real cycle, then merge): `SURF_SPOTS` set, one
    real 17:00 message on Telegram, or a logged evening where nothing passed and the stored rows say why.
-3. Tomas opens a Windy link from that message and it shows the spot.
-4. `tested: node 1` on the PR.
+4. Tomas opens a Windy link from that message and it shows the spot.
+5. One real `/act <id> …` answer is stored against a surf message, and `planetai run surf review` shows it.
+6. `tested: node 1` on the PR.
