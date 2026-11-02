@@ -49,23 +49,32 @@ looking at the water would not make better.
 
 Two Open-Meteo endpoints, both key-free, both multi-location (one request carries every spot, comma-separated):
 
-- **Marine**, `https://marine-api.open-meteo.com/v1/marine`, hourly: `swell_wave_height`, `swell_wave_period`,
-  `swell_wave_direction`, `secondary_swell_wave_height`, `secondary_swell_wave_period`,
-  `secondary_swell_wave_direction`, `wind_wave_height`, `sea_level_height_msl`. `forecast_days=3`,
-  `timezone` = the node's. Registry: `environmental/bioregion/open-meteo-marine` (already pinned, used by `coast`).
+- **Marine, swell**, `https://marine-api.open-meteo.com/v1/marine` with `models=ncep_gfswave016`, hourly:
+  `swell_wave_height`, `swell_wave_period`, `swell_wave_direction`, `secondary_swell_wave_height`,
+  `secondary_swell_wave_period`, `secondary_swell_wave_direction`, `wind_wave_height`. `forecast_days=3`, `timezone`
+  = the node's. Registry: `environmental/bioregion/open-meteo-marine` (already pinned, used by `coast`).
+- **Marine, tide**, the same endpoint with the default model, hourly `sea_level_height_msl` only (MeteoFrance SMOC;
+  GFS Wave has no sea level).
 - **Weather**, `https://api.open-meteo.com/v1/forecast`, hourly: `wind_speed_10m`, `wind_direction_10m`,
   `wind_gusts_10m`. Registry: `environmental/planet/open-meteo`.
 
-Read on 2 November for eight Bali spots: all those variables come back filled for 7 days except
-`swell_wave_peak_period`, which is null everywhere (so the pack uses `swell_wave_period`).
+**Why GFS Wave for the swell.** Open-Meteo's default for Bali is MeteoFrance MFWAM (0.08°). For Uluwatu at 07:00 on
+28 October, a day Tomas remembers as good, MFWAM gave 2.06 m at 8.8 s from 204°, and GFS Wave 0.16° gave 1.54 m at
+12.1 s from 203°. Both are "swell period", but MFWAM's runs about 3 s shorter, much like a mean period next to a peak
+period. Surf apps, Windy included, show numbers like GFS's. With GFS the message reads like the Windy screen it links
+to, and the thresholds can be set in the units surfers already think in. `swell_wave_peak_period` is null in both
+models here, and ECMWF WAM returned nothing for Bali. GFS's grid is coarser (16 km): Uluwatu and Green Bowl read the
+same cell, -8.83, 115.17. The weather model's wind is the same story: both spots came back from one point, -8.82,
+115.16. So on the Bukit the spots really differ only by how they face, and by the tide they need.
 `sea_level_height_msl` includes the tide (Open-Meteo: it "accounts for ocean tides, the inverted barometer
-effect…", from MeteoFrance SMOC at 0.08°) and swung from −0.5 m to +0.98 m at Uluwatu over the day, which looks like
+effect…", from MeteoFrance SMOC at 0.08°) and swung from −0.5 m to +0.98 m at Uluwatu over 2 November, and from
+−1.18 m to +1.70 m on 28 October (springs), which looks like
 Bali's tide. Its datum is mean sea level, not chart datum, so the pack only uses it to say low, mid or high
 relative to that day's own range.
 
 Licence: CC BY 4.0, attribution "Weather and marine data by Open-Meteo.com (CC BY 4.0); Copernicus Marine /
 MeteoFrance". The free tier is for non-commercial use, under 10,000 calls a day per public IP. A call counts once
-per location, so ten spots cost 20 calls a poll, 160 a day at one poll every 3 hours. Node #1 shares its IP with the
+per location, so twelve spots cost 36 calls a poll (swell, tide, wind), under 300 a day at one poll every 3 hours. Node #1 shares its IP with the
 rest of the house, and its forecast pack once ran into this cap (13 October, fixed since), so the 3-hour throttle
 is a requirement, not a nicety.
 
@@ -92,6 +101,7 @@ it before it is built; it is the part of the pack most likely to be wrong.
 | serangan | Serangan | -8.7300, 115.2400 | 150–210 | 240–320 | 0.8–2.0 | mid, high |
 | sanur | Sanur Reef | -8.6900, 115.2700 | 150–210 | 240–330 | 1.2–3.0 | mid, high |
 | keramas | Keramas | -8.5550, 115.4310 | 150–220 | 240–340 | 1.0–2.5 | mid, high |
+| green-bowl | Green Bowl | -8.8475, 115.1700 | 170–230 | 300–30 | 1.0–3.0 | mid, high |
 
 `SURF_SPOTS` (setting, comma-separated ids) picks the spots the keeper cares about. Blank means the pack idles and
 writes nothing, so it never calls Open-Meteo for a node that installed it by accident. Node #1 would set all of
@@ -116,10 +126,24 @@ A spot is **good tomorrow** when at least two hours in a row pass. Its window is
 weight is swell height² × period averaged over that run (a rough measure of swell energy), which orders the spots
 in the message.
 
-Every number here (10 s, 25 km/h, 8 km/h, the thirds, two hours) is a first guess, not a calibration. On
-2 November every spot had swell periods around 8 s, so at the default nothing would have passed, which is probably
-right for an 8-second swell. They are checked against a day Tomas knows was good (§8, §9), read back from Open-Meteo
-with `past_days`.
+Every number here (10 s, 25 km/h, 8 km/h, the thirds, two hours) is a first guess. Tomas gave two days to check
+them against: Uluwatu good on Wednesday 28 October, and Green Bowl "not so good" on Sunday 1 November. A throwaway
+run of this rule over 27 October to 2 November (Open-Meteo's archive of its own forecasts) gave:
+
+| floor, model | Uluwatu good on | Green Bowl good on | both of Tomas's days right |
+|---|---|---|---|
+| 10 s, MFWAM | 1, 2 Nov | none | no: misses 28 Oct (8.8 s) |
+| 9 s, MFWAM | 27, 28 Oct; 1, 2 Nov | none | yes, but 28 Oct passes by two hours |
+| 8 s, MFWAM | 27, 28 Oct; 1, 2 Nov | 2 Nov | yes |
+| **10 s, GFS Wave** | **27–30 Oct** | **none** | **yes, 05:00–12:00 on 28 Oct** |
+| 12 s, GFS Wave | 27, 28 Oct | none | yes |
+
+The two models agree on Tomas's days and disagree on the rest: GFS has the long-period swell running from 27 to 30
+October and fading, MFWAM puts Uluwatu's good days on 1 and 2 November. One more day Tomas remembers at Uluwatu,
+30 October or 1 November, decides between them (§9). The design goes with GFS at 10 s until then.
+
+Green Bowl failed on 1 November for two reasons: the tide was low until 11:00, and the south-east trade, which is
+onshore on that south-facing coast, reached 14–20 km/h from mid-morning.
 
 A known gap: the weather model does not see the morning land breeze that often makes Bali glassy at dawn before the
 trade wind fills in. The pack will under-call early sessions on some days.
@@ -171,15 +195,15 @@ trade wind fills in. The pack will under-call early sessions on some days.
 
 ## 8. Tests
 
-Offline, in `packs/surf/tests/`, from two pairs of fixtures (one marine and one weather response for the spots
-each): 2 November, a flat day, and the good day Tomas names (§9), read with Open-Meteo's `past_days`:
+Offline, in `packs/surf/tests/`, from fixtures for 27 October to 2 November (the GFS swell, MeteoFrance tide and
+wind responses for the spots, captured 2 November; the spike and its data are in the FAB CITY folder under `Claude outputs/surf-spike-2026-11-02/`, outside any repository, and are
+re-fetched at build time with `start_date`/`end_date`):
 
 - an onshore hour fails and the same hour with the wind turned offshore passes;
 - a low-tide hour fails at a mid-and-high spot and passes at Uluwatu;
 - a 12 s swell inside the window passes, an 8 s one does not, one from outside the window does not;
 - one passing hour alone is not a window, two in a row are;
-- on the flat day nothing passes; on the good day the spot Tomas surfed is in the top three, with a window that
-  includes the hours he was out;
+- 28 October: Uluwatu is good, with a window that includes the morning; 1 November: Green Bowl is not;
 - when only the secondary swell is in a spot's window, its height and period are the ones stored;
 - the rule's SQL, run on duckdb or the node's test database as the other packs do, returns no row at 16:00, one row
   at 17:00 with at most three spots, and none when no spot is good.
@@ -187,10 +211,11 @@ each): 2 November, a flat day, and the good day Tomas names (§9), read with Ope
 ## 9. Open
 
 - **Spots and their numbers (Tomas).** The §4 table is a draft. Which breaks, and what each really needs.
-- **A good day (Tomas).** A recent date when the surf was good, and where, so the thresholds have one positive case.
+- **GFS or MFWAM (Tomas, one more day).** How Uluwatu was on Friday 30 October or on Sunday 1 November. GFS says
+  good on the 30th and not on the 1st; MFWAM says the opposite.
 - **17:00 (my call).** Late enough that tomorrow's forecast has settled, early enough to plan the evening. Fixed in
   the rule's SQL; moving it is a one-line edit.
-- **The default period, 10 s (my call),** checked against the good day.
+- **The default period, 10 s on GFS Wave (my call),** right on both of Tomas's days (§5).
 - **Secondary swell (my call):** the in-window swell with more energy is the one that counts (§5.1).
 - **`derived`, not `private` (my call),** so the bot can talk about it (§6).
 
