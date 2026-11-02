@@ -57,4 +57,28 @@ print("  journal: the morning after the alert, the named window or 06-10, power 
 
 out = R.render(j, spots)
 assert out.index("Uluwatu") < out.index("Green Bowl") and "Ulu good, Green Bowl flat" in out and "#813" in out, out
+
+
+def flaky(spot, date):
+    if spot["id"] == "green-bowl":
+        raise TimeoutError("archive timed out")
+    return fetch_day(spot, date)
+
+
+j = R.journal(alerts, actions, spots, flaky)
+assert [h["hr"] for h in j["uluwatu"][0]["hours"]] == list(range(5, 13)), "one failed fetch does not take the others"
+assert j["green-bowl"][0]["hours"] == [] and "timed out" in j["green-bowl"][0]["error"], j["green-bowl"]
+assert "numbers not fetched" in R.render(j, spots)
+print("  a failed archive fetch is shown on its own spot, the rest of the journal stands")
+
+import contextlib  # noqa: E402
+import io  # noqa: E402
+
+R._get = lambda url, params=None: ([{"id": i, "ts": "2026-10-27T17:00:00+08:00", "rule_id": "heat/x", "text": ""}
+                                    for i in range(1000)] if url.endswith("/alerts") else [])
+err = io.StringIO()
+with contextlib.redirect_stderr(err), contextlib.redirect_stdout(io.StringIO()):
+    R.main(["--days", "60"])
+assert "1000" in err.getvalue() and "--days" in err.getvalue(), err.getvalue()
+print("  a full page of alerts says older calls may be missing")
 print("surf review: all checks passed")

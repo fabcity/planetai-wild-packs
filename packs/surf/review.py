@@ -80,10 +80,12 @@ def journal(alerts: list[dict], actions: list[dict], spots: dict, fetch_day) -> 
         win = windows_in(al.get("text", ""), spots)
         for n in notes[al["id"]]:
             for sid in find_spots(n["note"], spots):
-                rows = fetch_day(spots[sid], day)
-                out.setdefault(sid, []).append({"alert_id": al["id"], "date": day, "note": n["note"],
-                                                "actor": n.get("actor", ""),
-                                                "hours": _hours(rows, spots[sid], win.get(sid, DEFAULT_HOURS))})
+                e = {"alert_id": al["id"], "date": day, "note": n["note"], "actor": n.get("actor", ""), "hours": []}
+                try:                                    # one slow or refused archive call costs one spot, not the run
+                    e["hours"] = _hours(fetch_day(spots[sid], day), spots[sid], win.get(sid, DEFAULT_HOURS))
+                except Exception as x:  # noqa: BLE001
+                    e["error"] = f"{type(x).__name__}: {x}"
+                out.setdefault(sid, []).append(e)
     return out
 
 
@@ -99,6 +101,8 @@ def render(j: dict, spots: dict) -> str:
         lines.append(sp["name"])
         for e in j[sid]:
             lines.append(f"  {e['date']}  \"{e['note']}\"  ({e['actor']}, #{e['alert_id']})")
+            if e.get("error"):
+                lines.append(f"    numbers not fetched ({e['error']}); run it again later")
             for h in e["hours"]:
                 lines.append(f"    {h['hr']:02d}h  {_f(h['h1'], '.1f')} m {_f(h['t1'], '.0f')} s {_f(h['d1'], '.0f')}° "
                              f"{_f(h['kw'], '.0f')} kW/m | 2nd {_f(h['h2'], '.1f')} m {_f(h['t2'], '.0f')} s "
@@ -130,6 +134,9 @@ def main(argv=None) -> int:
     days = p.parse_args(argv).days
     node = f"http://127.0.0.1:{os.getenv('PORT', '8080')}"
     alerts = _get(node + "/alerts", {"limit": 1000, "since_hours": min(days * 24, 2160)})
+    if len(alerts) >= 1000:                             # /alerts counts every rule's alerts, not only surf's
+        print(f"surf review: the node returned its limit of 1000 alerts, so older surf calls may be missing; "
+              f"ask for fewer with --days (now {days})", file=sys.stderr)
     actions = _get(node + "/actions", {"limit": 5000, "stage": "acted"})
     spots = S.load_spots(Path(_HERE) / "spots.yml")
     print(render(journal(alerts, actions, spots, archive_day), spots))
