@@ -1,0 +1,32 @@
+# One message, at 17:00, the evening before: tomorrow and the day after, with a button to say how it was.
+#
+# `warn`, not `act`: an act alert is an open ask counted in rho, and a surf tip is not something the node should
+# measure itself by. warn reaches Telegram where ALERT_LEVEL is warn or info (node #1 runs warn); on the default
+# `act` it is recorded and shown, not sent. The README says so.
+#
+# 17:00 is fixed here, not a setting: rules run as planetai_ro, which cannot read `settings`. The rule session runs in
+# the node's own time zone (app/db.py), so extract(hour from now()) and the date of now() are local.
+#
+# The rule only gates and passes through. adapter.py writes the whole message into the `surf` sensor's meta (surf.py
+# builds it, with tests), and the node reads `buttons` as the alert's keyboard. It goes only if that summary was
+# fetched today: if the node was down all day, yesterday's forecast is not tomorrow's surf, and nothing goes.
+# The date is CAST, not to_char, and the ->> are in parentheses, so Postgres and the DuckDB test read it the same way,
+# in the session's zone.
+- id: surf_tomorrow
+  level: warn
+  cooldown_minutes: 720
+  sql: |
+    SELECT 'surf' AS sensor_id,
+           meta->>'text_en' AS text_en,
+           meta->>'text_es' AS text_es,
+           meta->>'text_id' AS text_id,
+           meta->>'buttons' AS buttons
+    FROM sensors
+    WHERE sensor_id = 'surf'
+      AND (meta->>'fetched') = CAST(CAST(now() AS date) AS text)
+      AND (meta->>'any') = '1'
+      AND extract(hour from now()) = 17
+  message:
+    en: "{text_en} {act} <your words>"
+    es: "{text_es} {act} <tus palabras>"
+    id: "{text_id} {act} <kata-katamu>"

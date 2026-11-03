@@ -1,0 +1,38 @@
+id: surf
+name: Surf, two days
+description: >-
+  At five in the evening, up to three spots for each of the next two days where surf could be good, each with its best
+  window (your own hours first), swell, power, wind, tide and a Windy link, from Open-Meteo's GFS Wave swell, sea level
+  and wind. The model's grid is 16 km, so check the spot before you go. Rate it with a tap, `planetai run surf review`
+  keeps a journal for each spot, and `planetai run surf ask <spot>` reads any spot's two days.
+author: Tomas Diez (Fab City Foundation)
+version: 0.2.0
+requires: { node: ">=0.91.0" }
+kind: code
+domain: coast
+metrics: [surf_good, surf_kw, surf_from_h, surf_to_h, surf_swell_m, surf_period_s, surf_swell_dir, surf_mixed,
+          surf_swell2_m, surf_period2_s, surf_swell2_dir, surf_wind_kmh, surf_wind_dir, surf_tide,
+          surf_good_d2, surf_kw_d2, surf_from_h_d2, surf_to_h_d2, surf_swell_m_d2, surf_period_s_d2, surf_swell_dir_d2,
+          surf_mixed_d2, surf_swell2_m_d2, surf_period2_s_d2, surf_swell2_dir_d2, surf_wind_kmh_d2, surf_wind_dir_d2,
+          surf_tide_d2, surf_spots_good]
+scales: [bioregion]
+sources: [environmental/bioregion/open-meteo-marine, environmental/planet/open-meteo]
+env:
+  # No padding after `=`: a value pasted after spaces makes the line `VAR= value`, which shell reads as a command.
+  - "# surf: the spots to watch, ids from packs/surf/spots.yml, comma-separated. Blank keeps the pack idle."
+  - "SURF_SPOTS="
+  - "# surf: the shortest swell period that counts, in seconds (GFS Wave's period, the kind Windy shows)"
+  - "SURF_MIN_PERIOD=10"
+  - "# surf: the hours you can surf, local time, `start-end` pairs separated by commas; a whole hour must fit inside one"
+  - "SURF_HOURS=08:30-12:00,16:00-18:30"
+  - "# surf: the length of a session in hours, which sets the window the message names"
+  - "SURF_SESSION_H=2"
+  - "# surf: swell power in kW/m above which a spot is marked big for you right now; it never hides a spot"
+  - "SURF_COMFORT_KW=15"
+agent_scripts: [review, ask]
+needs: >-
+  Network to marine-api.open-meteo.com and api.open-meteo.com. No key. Three requests every three hours, each counted
+  once per watched spot by Open-Meteo, against a free tier of 10,000 calls a day per public IP. The evening message
+  is a `warn` alert, so it reaches Telegram only where ALERT_LEVEL is warn or info.
+attribution: >-
+  Weather and marine data by Open-Meteo.com (CC BY 4.0); NOAA GFS Wave; Copernicus Marine / MeteoFrance.
