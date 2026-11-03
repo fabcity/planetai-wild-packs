@@ -266,6 +266,55 @@ assert kb[0][0]["ask"]["en"] == "Anything to add? Size, crowd, how you felt. One
 assert kb[2][1]["ask"]["en"] == "Where, and how was it? One line, or ignore me."
 for sid in spots:
     assert all(re.fullmatch(r"[a-z0-9:_-]{1,40}", f"{sid}:{r}") for r in ("good", "ok", "poor")), sid
+# fix round 1: the label and the glassy word read the numbers the line prints, not the raw ones
+assert "big for you" not in S.spot_block(ulu, dict(A_ULU, kw=15.4), "en", 15), "kw 15.4 prints 15, not over 15"
+ob = S.spot_block(ulu, dict(A_ULU, kw=15.6), "en", 15).split("\n")
+assert "power 16 kW/m" in ob[2] and ob[0].endswith("big for you right now"), "kw 15.6 prints 16, over 15"
+rw = S.spot_block(ulu, dict(A_ULU, wind=7.6, wdir=200.0), "en", 15).split("\n")
+assert rw[2] == "  power 8 kW/m · wind 8 km/h from the SSW · tide high", "7.6 prints 8: not glassy, direction, no suffix: " + rw[2]
+rw = S.spot_block(ulu, dict(A_ULU, wind=7.4, wdir=200.0), "en", 15).split("\n")
+assert rw[2] == "  power 8 kW/m · wind 7 km/h, glassy · tide high", "7.4 prints 7: glassy: " + rw[2]
+rw = S.spot_block(ulu, dict(A_ULU, wind=8.0, wdir=200.0), "en", 15).split("\n")
+assert rw[2] == "  power 8 kW/m · wind 8 km/h from the SSW · tide high", "8 is not glassy, and not offshore: " + rw[2]
+
+# the label also shows on a block outside his hours
+o = S.spot_block(ulu, dict(A_ULU, runs=[(5, 7)], window=(5, 7), inside=False, kw=21.0), "en", 15).split("\n")
+assert o[0] == "• Uluwatu, good 05–07, outside your hours · big for you right now", o[0]
+assert "big for you" not in S.spot_block(ulu, dict(A_ULU, runs=[(5, 7)], window=(5, 7), inside=False), "en", 15)
+
+# every month heading, all three locales (2026-m-15 is the 15th)
+MONTHS = {"en": "Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec", "es": "ene feb mar abr may jun jul ago sep oct nov dic",
+          "id": "Jan Feb Mar Apr Mei Jun Jul Agu Sep Okt Nov Des"}
+for loc, names in MONTHS.items():
+    for m, name in enumerate(names.split(), 1):
+        h = S.day_text(f"2026-{m:02d}-15", [], loc, 15).split(":")[0]
+        assert h.endswith(f" 15 {name}"), (loc, m, h)
+# 15 Mar 2026 is a Sunday: the weekday is the date's, in each language
+assert [S.day_text("2026-03-15", [], loc, 15).split(" ")[0] for loc in ("en", "es", "id")] == ["Sunday", "domingo", "Minggu"]
+
+# es and id: the mixed line, the offshore word, the glassy word
+mxd = dict(A_ULU, second={"h": 0.6, "t": 9.0, "dir": 180.0, "kw": 1.0})
+assert S.spot_block(ulu, mxd, "es", 15).split("\n")[1] == "  olas 1.0 m cada 13 s, del SSO, mezcladas con 0.6 m cada 9 s del S"
+assert S.spot_block(ulu, mxd, "id", 15).split("\n")[1] == "  ombak 1.0 m tiap 13 s, dari SSW, bercampur 0.6 m tiap 9 s dari S"
+assert S.spot_block(ulu, A_ULU, "es", 15).split("\n")[2] == "  potencia 8 kW/m · viento 9 km/h del E, terral · marea alta"
+assert S.spot_block(ulu, A_ULU, "id", 15).split("\n")[2] == "  tenaga 8 kW/m · angin 9 km/h dari E, dari darat · air pasang"
+gl = dict(A_ULU, wind=4.0, wdir=200.0)
+assert S.spot_block(ulu, gl, "es", 15).split("\n")[2] == "  potencia 8 kW/m · viento 4 km/h, como un espejo · marea alta"
+assert S.spot_block(ulu, gl, "id", 15).split("\n")[2] == "  tenaga 8 kW/m · angin 4 km/h, mulus · air pasang"
+
+# copy
+assert S.message([("2026-11-04", [])], "es", 15, True).endswith(
+    "Es un modelo, no un parte de surf. Compruébalo antes de ir.\n¿Cómo estuvo? Toca abajo, o escribe:")
+assert S.message([("2026-11-04", [])], "es", 15, False).endswith("Compruébalo antes de ir.\n¿Cómo estuvo? Escribe:")
+assert kb[2][1]["text"]["id"] == "Berselancar di tempat lain", kb[2][1]["text"]
+assert kb[2][1]["ask"]["id"] == "Di mana, dan bagaimana ombaknya? Satu baris, atau abaikan saja.", kb[2][1]["ask"]
+
+# no two buttons share an ask object: one edited in place must not change the others
+asks = [x["ask"] for r in kb for x in r if "ask" in x]
+assert len({id(a) for a in asks}) == len(asks) == 7, "each button owns its ask map"
+kb[0][0]["ask"]["en"] = "edited"
+assert kb[0][1]["ask"]["en"] != "edited" and S.keyboard([ulu])[0][0]["ask"]["en"] != "edited"
+
 print("  message: every number named, two days, one block per spot; keyboard: node's button contract")
 
 print("surf: all checks passed")

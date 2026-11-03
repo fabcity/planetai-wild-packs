@@ -46,8 +46,8 @@ WORDS = {
            "b_waves": "  olas {h} m cada {t} s, del {d}", "b_mix": ", mezcladas con {h} m cada {t} s del {d}",
            "b_power": "  potencia {kw} kW/m · viento {w} km/h", "b_from": " del {d}", "b_off": ", terral",
            "b_glassy": ", como un espejo", "b_tide": " · marea {x}", "b_none": "nada parece bueno",
-           "b_foot": "Es un modelo, no un parte de surf. Míralas antes de ir.\n¿Cómo estuvo? Toca abajo, o escribe:",
-           "b_foot0": "Es un modelo, no un parte de surf. Míralas antes de ir.\n¿Cómo estuvo? Escribe:",
+           "b_foot": "Es un modelo, no un parte de surf. Compruébalo antes de ir.\n¿Cómo estuvo? Toca abajo, o escribe:",
+           "b_foot0": "Es un modelo, no un parte de surf. Compruébalo antes de ir.\n¿Cómo estuvo? Escribe:",
            "days": "lunes martes miércoles jueves viernes sábado domingo".split(),
            "months": "ene feb mar abr may jun jul ago sep oct nov dic".split(),
            "didnt": "No fui", "elsewhere": "Surfeé en otro sitio",
@@ -65,9 +65,9 @@ WORDS = {
            "b_foot0": "Ini model, bukan laporan surf. Cek dulu sebelum berangkat.\nBagaimana ombaknya? Tulis:",
            "days": "Senin Selasa Rabu Kamis Jumat Sabtu Minggu".split(),
            "months": "Jan Feb Mar Apr Mei Jun Jul Agu Sep Okt Nov Des".split(),
-           "didnt": "Tidak jadi pergi", "elsewhere": "Selancar di tempat lain",
+           "didnt": "Tidak jadi pergi", "elsewhere": "Berselancar di tempat lain",
            "ask": "Ada yang mau ditambahkan? Ukuran, keramaian, perasaanmu. Satu baris, atau abaikan saja.",
-           "ask_else": "Di mana, dan bagaimana? Satu baris, atau abaikan saja."},
+           "ask_else": "Di mana, dan bagaimana ombaknya? Satu baris, atau abaikan saja."},
 }
 
 
@@ -273,7 +273,7 @@ def spot_block(spot: dict, a: dict, locale: str, comfort_kw: float) -> str:
         l1 = W["b_best"].format(name=spot["name"], f=f"{f:02d}", t=f"{t + 1:02d}", runs=runs)
     else:
         l1 = W["b_out"].format(name=spot["name"], runs=runs)
-    if a["kw"] > comfort_kw:
+    if round(a["kw"]) > comfort_kw:  # the power the line prints
         l1 += W["b_big"]
     s = a["swell"]
     l2 = W["b_waves"].format(h=f"{s['h']:.1f}", t=f"{s['t']:.0f}", d=_compass(s["dir"], locale))
@@ -281,7 +281,7 @@ def spot_block(spot: dict, a: dict, locale: str, comfort_kw: float) -> str:
         x = a["second"]
         l2 += W["b_mix"].format(h=f"{x['h']:.1f}", t=f"{x['t']:.0f}", d=_compass(x["dir"], locale))
     off = a["wdir"] is not None and within(a["wdir"], spot["offshore"])
-    glassy = a["wind"] < GLASSY_KMH and not off
+    glassy = round(a["wind"]) < GLASSY_KMH and not off  # the wind the line prints
     l3 = W["b_power"].format(kw=f"{a['kw']:.0f}", w=f"{a['wind']:.0f}")
     if a["wdir"] is not None and not glassy:
         l3 += W["b_from"].format(d=_compass(a["wdir"], locale))
@@ -317,7 +317,7 @@ def keyboard(spots: list[dict]) -> list[list[dict]]:
     rows = []
     for sp in spots:
         rows.append([{"text": {loc: f"{sp['name']} {e}" if e == "👍" else e for loc in L}, "value": f"{sp['id']}:{r}",
-                      "stage": "acted", "ask": ask} for e, r in (("👍", "good"), ("👌", "ok"), ("👎", "poor"))])
+                      "stage": "acted", "ask": dict(ask)} for e, r in (("👍", "good"), ("👌", "ok"), ("👎", "poor"))])
     rows.append([{"text": {loc: WORDS[loc]["didnt"] for loc in L}, "value": "didnt-go", "stage": "acknowledged"},
                  {"text": {loc: WORDS[loc]["elsewhere"] for loc in L}, "value": "elsewhere", "stage": "acted",
                   "ask": {loc: WORDS[loc]["ask_else"] for loc in L}}])
