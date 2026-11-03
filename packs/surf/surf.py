@@ -242,11 +242,16 @@ def pick(results: list[tuple[dict, dict]], n: int = 3) -> list[tuple[dict, dict]
     return sorted(good, key=lambda r: (not r[1]["inside"], -r[1]["kw"]))[:n]
 
 
+def _span(f: int, t: int) -> str:
+    """Hours f to t inclusive as "16:00–18:00": end-exclusive, and the hour 18 ends at dusk, 18:30, not 19:00."""
+    return f"{f:02d}:00–{'18:30' if t == LAST_H else f'{t + 1:02d}:00'}"
+
+
 def spot_block(spot: dict, a: dict, locale: str, comfort_kw: float) -> str:
     """The four lines of one spot: when, waves, power and wind and tide, the Windy link."""
     W = WORDS.get(locale, WORDS["en"])
     # end-exclusive like the window; the hour 18 ends at dusk, 18:30, not 19:00
-    runs = ", ".join(f"{f:02d}:00–{'18:30' if t == LAST_H else f'{t + 1:02d}:00'}" for f, t in a["runs"])
+    runs = ", ".join(_span(f, t) for f, t in a["runs"])
     if a["inside"]:
         f, t = a["window"]
         l1 = W["b_best"].format(name=spot["name"], f=f"{f:02d}", t=f"{t + 1:02d}", runs=runs)
@@ -278,6 +283,20 @@ def day_text(date: str, picked: list[tuple[dict, dict]], locale: str, comfort_kw
     if not picked:
         return f"{head}: {W['b_none']}"
     return "\n".join([head] + [spot_block(sp, a, locale, comfort_kw) for sp, a in picked])
+
+
+def ahead_text(picked: list[tuple[dict, dict]], locale: str, limit: int = 160) -> str:
+    """The one line Next days shows for a day: each picked spot's best window, " · " between, cut at a whole spot to
+    `limit` characters (the node cuts at 160 itself). Nothing picked says so. Size is never a reason to leave a spot out."""
+    if not picked:
+        return WORDS.get(locale, WORDS["en"])["b_none"]
+    line = ""
+    for sp, a in picked:
+        part = f"{sp['name']} {_span(*a['window'])}"
+        if line and len(line) + 3 + len(part) > limit:
+            break
+        line = f"{line} · {part}" if line else part
+    return line
 
 
 def message(days: list[tuple[str, list]], locale: str, comfort_kw: float) -> str:

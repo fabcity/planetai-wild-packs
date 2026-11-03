@@ -7,7 +7,8 @@ in PACK_OUT, touched before the first call, so a 429 waits three hours too (pack
 the forecast pack spent the whole IP's free tier by mid-morning by asking every poll). Rows are stamped at the fetch,
 not at tomorrow: readings are ON CONFLICT DO NOTHING, and a row at a fixed future time would keep the day's first
 forecast forever. The whole two-day message, in en, es and id, and its keyboard go into the meta of one summary
-sensor, `surf`, which the node replaces on every poll; rules.yml only reads it.
+sensor, `surf`, which the node replaces on every poll; rules.yml only reads it. The same meta holds the short line for
+Next days, `ahead_<locale>_d1` (tomorrow) and `_d2`, which pack.yaml's `ahead:` points at; `fetched` is the local date.
 
 Contract: fetch(hc) -> (sensors, readings), like everything in app/sources.py.
 """
@@ -118,10 +119,11 @@ def fetch(hc):
     picked = [S.pick(d) for d in days]
     buttons = S.keyboard([sp for sp, _ in picked[0]])
     text = {loc: S.message([(d1, picked[0]), (d2, picked[1])], loc, comfort) for loc in ("en", "es", "id")}
+    ahead = {f"ahead_{loc}_d{n + 1}": S.ahead_text(picked[n], loc) for loc in ("en", "es", "id") for n in (0, 1)}
     first = watch[0]       # the pack has no position of its own, so the summary sits at the first watched spot
     sensors.append({"sensor_id": "surf", "source": "surf", "name": "Surf", "lat": first["lat"], "lon": first["lon"],
                     "indoor": False, "local": False, "kind": "model", "scale": "bioregion", "cadence": "PT3H",
                     "meta": {"attribution": ATTRIBUTION, "fetched": today, "any": "1" if any(picked) else "0",
-                             **{f"text_{loc}": t for loc, t in text.items()}, "buttons": json.dumps(buttons)}})
+                             **{f"text_{loc}": t for loc, t in text.items()}, "buttons": json.dumps(buttons), **ahead}})
     readings.append((now, "surf", "surf_spots_good", float(sum(a["good"] for d in days for _, a in d))))
     return sensors, readings

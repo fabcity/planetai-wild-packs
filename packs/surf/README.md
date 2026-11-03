@@ -10,6 +10,9 @@ direction, plus a second swell when the sea is mixed), the power in kW per metre
 offshore or glassy, the tide, and a Windy link that opens the spot's forecast. A day where nothing passes says "nothing
 looks good", and when both days are empty it sends nothing.
 
+On the node's Next days view, tomorrow and the day after each get one short line with the best window of every spot
+the message picks, like "Uluwatu 16:00–18:00 · Impossibles 16:00–18:00" (`ahead:` in `pack.yaml`; a node without Next days ignores it).
+
 It was written for Bali, from my house in Ungasan, with fourteen spots in `spots.yml`: Uluwatu, Padang Padang,
 Impossibles, Bingin, Balangan, Kuta Reef, Canggu, Medewi, Nusa Dua, Serangan, Sanur, Keramas, Green Bowl and Nyang
 Nyang. My node watches ten of them. Bingin, Medewi, Sanur and Keramas stay in the file and are not watched, and Bingin is

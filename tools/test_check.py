@@ -45,4 +45,22 @@ assert has(C.problems([dict(hosted, commit=SHA)], CORE, {"rain-gauge"}), "drop '
 assert has(C.problems([entry(source="fabcity/planetai-wild-packs/elsewhere")], CORE, set()), "has source fabcity/planetai-wild-packs/packs/rain-gauge")
 assert has(C.problems([], CORE, {"orphan"}), "packs/orphan/ is here but packs.json does not list it")
 assert has(C.problems([hosted], CORE, set()), "does not exist")
+
+AHEAD = {"id": "surf", "title": {"en": "Surf", "es": "Olas", "id": "Ombak"}, "sensor": "surf", "days": ["ahead_d1", "ahead_d2"]}
+assert C.ahead_problems(AHEAD) == []
+for bad in ({**AHEAD, "id": "Surf"}, {**AHEAD, "id": None}, {**AHEAD, "sensor": ""}, {k: v for k, v in AHEAD.items() if k != "sensor"},
+            {**AHEAD, "title": {"en": "Surf", "es": "Olas"}}, {**AHEAD, "title": {"en": "Surf", "es": "Olas", "id": ""}},
+            {**AHEAD, "days": ["ahead_d1"]}, {**AHEAD, "days": ["ahead_d1", "ahead_d2", "ahead_d3"]},
+            {**AHEAD, "days": ["ahead_d1", 2]}, {**AHEAD, "days": ["d1", "ahead_d2"]}, {**AHEAD, "days": "ahead_d1"}, "surf", ["surf"]):
+    assert C.ahead_problems(bad), bad
+assert C.ahead_problems(None) == ["ahead must be a mapping"]
+import tempfile
+d = Path(tempfile.mkdtemp())
+def mp(ahead):
+    (d / "pack.yaml").write_text("id: rain-gauge\n" + ahead); return C.manifest_problems(entry(kind="data"), d)
+assert mp("name: x\n") == [] and mp("ahead:\n") == [], "no ahead, or an empty one: the node reads both as absent"
+assert mp("ahead: {id: surf, title: {en: Surf, es: Olas, id: Ombak}, sensor: surf, days: [ahead_d1, ahead_d2]}\n") == []
+bad = mp("ahead: {id: Surf, title: {en: Surf}, sensor: surf, days: [ahead_d1]}\n")
+assert len(bad) == 1 and has(bad, "rain-gauge: ahead:") and has(bad, "lowercase") and has(bad, "title in en, es and id") and has(bad, "exactly two"), bad
+assert has(C.ahead_problems({**AHEAD, "title": {}}), "title in en, es and id")
 print("check.py: the index rules hold")
