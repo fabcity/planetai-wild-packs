@@ -4,6 +4,7 @@
 # (0.49 · H² · T, GFS Wave terms). tide: the thirds of the day's range it works on. aliases: names people use in a note.
 - { id: uluwatu,       name: Uluwatu,              at: [-8.8150, 115.0870], swell: [180, 250], offshore: [60, 150],  kw: [4, 50],  tide: [low, mid, high], aliases: [ulu] }
 - { id: padang-padang, name: Padang Padang,        at: [-8.8110, 115.1000], swell: [190, 250], offshore: [60, 150],  kw: [12, 50], tide: [mid, high],      aliases: [padang] }
+- { id: impossibles,   name: Impossibles,          at: [-8.8085, 115.1075], swell: [190, 250], offshore: [60, 150],  kw: [6, 40],  tide: [mid, high],      aliases: [impossible] }
 - { id: bingin,        name: Bingin,               at: [-8.8055, 115.1125], swell: [190, 250], offshore: [60, 150],  kw: [4, 20],  tide: [mid, high],      aliases: [] }
 - { id: balangan,      name: Balangan,             at: [-8.7905, 115.1220], swell: [190, 250], offshore: [60, 150],  kw: [4, 20],  tide: [mid, high],      aliases: [] }
 - { id: kuta-reef,     name: Kuta Reef,            at: [-8.7400, 115.1550], swell: [180, 250], offshore: [45, 135],  kw: [4, 30],  tide: [mid, high],      aliases: [kuta] }
@@ -14,3 +15,4 @@
 - { id: sanur,         name: Sanur Reef,           at: [-8.6900, 115.2700], swell: [150, 210], offshore: [240, 330], kw: [5, 30],  tide: [mid, high],      aliases: [] }
 - { id: keramas,       name: Keramas,              at: [-8.5550, 115.4310], swell: [150, 220], offshore: [240, 340], kw: [4, 20],  tide: [mid, high],      aliases: [] }
 - { id: green-bowl,    name: Green Bowl,           at: [-8.8475, 115.1700], swell: [170, 230], offshore: [300, 30],  kw: [4, 30],  tide: [mid, high],      aliases: [] }
+- { id: nyang-nyang,   name: Nyang Nyang,          at: [-8.8400, 115.0945], swell: [170, 250], offshore: [0, 110],   kw: [3, 25],  tide: [mid, high],      aliases: [nyang] }

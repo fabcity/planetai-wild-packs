@@ -45,12 +45,16 @@ assert S.tide_class(None, -1, 1) is None
 print("  power, arcs, tide thirds")
 
 # ---------------------------------------------------------------- spots.yml
-assert len(spots) == 12, sorted(spots)
+assert len(spots) == 14, sorted(spots)
+assert (spots["impossibles"]["lat"], spots["impossibles"]["lon"]) == (-8.8085, 115.1075), spots["impossibles"]
+assert spots["impossibles"]["aliases"] == ["impossible"], spots["impossibles"]
+assert (spots["nyang-nyang"]["lat"], spots["nyang-nyang"]["lon"]) == (-8.8400, 115.0945), spots["nyang-nyang"]
+assert spots["nyang-nyang"]["aliases"] == ["nyang"], spots["nyang-nyang"]
 for sid, sp in spots.items():
     assert sid == sp["id"] and all(c.isalnum() or c == "-" for c in sid) and sid == sid.lower(), sid
     assert sp["kw"][0] < sp["kw"][1], sp
     assert sp["tide"] <= {"low", "mid", "high"} and sp["tide"], sp
-print("  spots.yml: 12 spots, ranges ordered, tides named")
+print("  spots.yml: 14 spots, ranges ordered, tides named")
 
 # ---------------------------------------------------------------- the window
 a = S.assess(ulu, day([6]))

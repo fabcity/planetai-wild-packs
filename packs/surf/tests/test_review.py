@@ -25,6 +25,7 @@ def fetch_day(spot, date):
 
 assert R.find_spots("Ulu good, Bingin closing out", spots) == ["uluwatu", "bingin"]
 assert R.find_spots("padang padang firing", spots) == ["padang-padang"]
+assert R.find_spots("impossible was firing", spots) == ["impossibles"]
 assert R.find_spots("Batu Bolong mushy, then Uluwatu", spots) == ["canggu", "uluwatu"]
 assert R.find_spots("nothing here, not even a kutapang", spots) == [], "kuta inside another word is not Kuta"
 print("  find_spots: ids, names and aliases, whole words, in the order said")
