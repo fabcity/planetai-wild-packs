@@ -68,7 +68,6 @@ assert not a["good"] and a["runs"] == [] and a["window"] is None and not a["insi
 assert a["swell"] is None and a["kw"] == 0.0 and a["wind"] is None and a["tide"] is None, a
 a = S.assess(ulu, day([6, 7]))
 assert a["good"] and a["runs"] == [(6, 7)] and a["window"] == (6, 7) and not a["inside"], a
-assert (a["from_h"], a["to_h"]) == (6, 7), "v1's keys follow the window until the adapter drops them"
 a = S.assess(ulu, day([4, 5, 6, 9, 10, 11, 12, 19, 20]))
 assert a["runs"] == [(5, 6), (9, 12)], "hours outside 05-18 do not count"
 assert a["window"] == (9, 10) and a["inside"], "equal wind: the earlier window"
@@ -170,27 +169,11 @@ assert not S.assess(spots["green-bowl"], fixture_day(GB, "2026-11-01"))["good"]
 assert S.assess(spots["green-bowl"], fixture_day(GB, "2026-11-02"))["good"]
 print("  archive: Uluwatu good 28 Oct and 1 Nov, not 31 Oct; Green Bowl not 1 Nov, good 2 Nov (spec §5)")
 
-# ---------------------------------------------------------------- the line
-a = {"good": True, "from_h": 5, "to_h": 12, "swell": {"h": 1.54, "t": 12.1, "dir": 203.0, "kw": S.power(1.54, 12.1)},
-     "second": None, "kw": 14.2, "wind": 3.6, "wdir": 84.0, "tide": "low"}
-en = S.line(ulu, a, "en")
-assert en.startswith("• Uluwatu 5–12: "), en
-assert "1.5 m at 12 s from the SSW" in en and "14 kW/m" in en and "wind 4 km/h E (offshore)" in en and "low tide" in en, en
-assert en.endswith("https://www.windy.com/-8.815/115.087?swell1,-8.815,115.087,12"), en
-for loc in ("es", "id"):
-    t = S.line(ulu, a, loc)
-    assert t.startswith("• Uluwatu 5–12: ") and "1.5 m" in t and "12 s" in t and "14 kW/m" in t and "4 km/h" in t, t
-    assert t.endswith("swell1,-8.815,115.087,12"), t
-mixed = S.line(ulu, dict(a, second={"h": 0.9, "t": 15.0, "dir": 225.0, "kw": S.power(0.9, 15)}), "en")
-assert "14 kW/m, mixed with 0.9 m at 15 s from the SW" in mixed, mixed
-assert "(light)" in S.line(ulu, dict(a, wdir=270.0), "en"), "a glassy wind from elsewhere is not called offshore"
-print("  line: en, es, id with the same numbers and the Windy link")
-
 # ---------------------------------------------------------------- the message and the buttons
 import re  # noqa: E402
 
 nyang = spots["nyang-nyang"]
-A_ULU = {"good": True, "runs": [(5, 18)], "window": (9, 10), "inside": True, "from_h": 9, "to_h": 10,
+A_ULU = {"good": True, "runs": [(5, 18)], "window": (9, 10), "inside": True,
          "swell": {"h": 1.0, "t": 13.0, "dir": 203.0, "kw": 8.0}, "second": None, "kw": 8.0, "wind": 9.0, "wdir": 90.0,
          "tide": "high"}
 assert S.spot_block(ulu, A_ULU, "en", 15) == "\n".join((

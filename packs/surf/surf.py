@@ -23,9 +23,7 @@ MIX_SHARE, MIX_APART = 0.25, 20
 
 COMPASS = "N NNE NE ENE E ESE SE SSE S SSW SW WSW W WNW NW NNW".split()
 WORDS = {
-    "en": {"swell": "{h} m at {t} s from the {d}", "mix": ", mixed with {h} m at {t} s from the {d}",
-           "wind": "wind {w} km/h {d} ({how})", "offshore": "offshore", "light": "light",
-           "tide": "{x} tide", "low": "low", "mid": "mid", "high": "high",
+    "en": {"low": "low", "mid": "mid", "high": "high",
            "b_head": "🌊 Surf in the next two days", "b_best": "• {name}, best {f}:00–{t}:00 (good {runs})",
            "b_out": "• {name}, good {runs}, outside your hours", "b_big": " · big for you right now",
            "b_waves": "  waves {h} m every {t} s, from the {d}", "b_mix": ", mixed with {h} m every {t} s from the {d}",
@@ -38,9 +36,7 @@ WORDS = {
            "didnt": "Didn't go", "elsewhere": "Surfed somewhere else",
            "ask": "Anything to add? Size, crowd, how you felt. One line, or ignore me.",
            "ask_else": "Where, and how was it? One line, or ignore me."},
-    "es": {"swell": "{h} m a {t} s del {d}", "mix": ", mezclado con {h} m a {t} s del {d}",
-           "wind": "viento {w} km/h {d} ({how})", "offshore": "terral", "light": "flojo",
-           "tide": "marea {x}", "low": "baja", "mid": "media", "high": "alta",
+    "es": {"low": "baja", "mid": "media", "high": "alta",
            "b_head": "🌊 Olas en los próximos dos días", "b_best": "• {name}, mejor {f}:00–{t}:00 (bueno {runs})",
            "b_out": "• {name}, bueno {runs}, fuera de tu horario", "b_big": " · grande para ti ahora",
            "b_waves": "  olas {h} m cada {t} s, del {d}", "b_mix": ", mezcladas con {h} m cada {t} s del {d}",
@@ -53,9 +49,7 @@ WORDS = {
            "didnt": "No fui", "elsewhere": "Surfeé en otro sitio",
            "ask": "¿Algo que añadir? Tamaño, gente, cómo te sentiste. Una línea, o ignórame.",
            "ask_else": "¿Dónde, y cómo estuvo? Una línea, o ignórame."},
-    "id": {"swell": "{h} m, {t} s dari {d}", "mix": ", bercampur {h} m, {t} s dari {d}",
-           "wind": "angin {w} km/h {d} ({how})", "offshore": "dari darat", "light": "lemah",
-           "tide": "air {x}", "low": "surut", "mid": "sedang", "high": "pasang",
+    "id": {"low": "surut", "mid": "sedang", "high": "pasang",
            "b_head": "🌊 Ombak dua hari ke depan", "b_best": "• {name}, terbaik {f}:00–{t}:00 (bagus {runs})",
            "b_out": "• {name}, bagus {runs}, di luar jam bebasmu", "b_big": " · besar untukmu sekarang",
            "b_waves": "  ombak {h} m tiap {t} s, dari {d}", "b_mix": ", bercampur {h} m tiap {t} s dari {d}",
@@ -203,7 +197,7 @@ def assess(spot: dict, rows: list[dict], min_period: float = 10.0, hours: str | 
     hours, the direction, second swell and tide from its first hour."""
     session_h = max(1, int(session_h))
     runs = good_runs(spot, rows, min_period)
-    out = {"good": bool(runs), "runs": runs, "window": None, "inside": False, "from_h": None, "to_h": None,
+    out = {"good": bool(runs), "runs": runs, "window": None, "inside": False,
            "swell": None, "second": None, "kw": 0.0, "wind": None, "wdir": None, "tide": None}
     if not runs:
         return out
@@ -223,7 +217,7 @@ def assess(spot: dict, rows: list[dict], min_period: float = 10.0, hours: str | 
     lo, hi = _tide_range(rows)
     sw = [_swells(by_hr[h], spot, min_period) for h in span]
     first, second = sw[0]
-    out.update(window=(f, t), from_h=f, to_h=t, second=second,
+    out.update(window=(f, t), second=second,
                swell={"h": _mean([s["h"] for s, _ in sw]), "t": _mean([s["t"] for s, _ in sw]), "dir": first["dir"],
                       "kw": _mean([s["kw"] for s, _ in sw])},
                kw=_mean([s["kw"] for s, _ in sw]), wind=_mean([by_hr[h]["wind"] for h in span]),
@@ -239,23 +233,6 @@ def _compass(deg: float, locale: str) -> str:
 def windy(spot: dict) -> str:
     lat, lon = f"{spot['lat']:.3f}", f"{spot['lon']:.3f}"
     return f"https://www.windy.com/{lat}/{lon}?swell1,{lat},{lon},12"
-
-
-def line(spot: dict, a: dict, locale: str) -> str:
-    W = WORDS.get(locale, WORDS["en"])
-    s = a["swell"]
-    out = f"• {spot['name']} {a['from_h']}–{a['to_h']}: "
-    out += W["swell"].format(h=f"{s['h']:.1f}", t=f"{s['t']:.0f}", d=_compass(s["dir"], locale))
-    out += f", {a['kw']:.0f} kW/m"
-    if a.get("second"):
-        x = a["second"]
-        out += W["mix"].format(h=f"{x['h']:.1f}", t=f"{x['t']:.0f}", d=_compass(x["dir"], locale))
-    off = a["wdir"] is not None and within(a["wdir"], spot["offshore"])
-    out += ", " + W["wind"].format(w=f"{a['wind']:.0f}", d=_compass(a["wdir"], locale) if a["wdir"] is not None else "",
-                                   how=W["offshore" if off else "light"])
-    if a.get("tide"):
-        out += ", " + W["tide"].format(x=W[a["tide"]])
-    return out + " → " + windy(spot)
 
 
 def pick(results: list[tuple[dict, dict]], n: int = 3) -> list[tuple[dict, dict]]:

@@ -1,16 +1,32 @@
 # Everything here is a judgement this pack makes from Open-Meteo's models about a spot, never a measurement at this
-# address: derived, and comparable with nothing a device here reads. Each row describes the next local day.
-- { source: surf, metric: surf_good,       role: derived, comparable: false, unit: "1 = good tomorrow" }
-- { source: surf, metric: surf_kw,         role: derived, comparable: false, unit: "kW/m" }
-- { source: surf, metric: surf_from_h,     role: derived, comparable: false, unit: "local hour" }
-- { source: surf, metric: surf_to_h,       role: derived, comparable: false, unit: "local hour" }
-- { source: surf, metric: surf_swell_m,    role: derived, comparable: false, unit: "m" }
-- { source: surf, metric: surf_period_s,   role: derived, comparable: false, unit: "s" }
-- { source: surf, metric: surf_swell_dir,  role: derived, comparable: false, unit: "° from" }
-- { source: surf, metric: surf_mixed,      role: derived, comparable: false, unit: "1 = two swells" }
-- { source: surf, metric: surf_swell2_m,   role: derived, comparable: false, unit: "m" }
-- { source: surf, metric: surf_period2_s,  role: derived, comparable: false, unit: "s" }
-- { source: surf, metric: surf_swell2_dir, role: derived, comparable: false, unit: "° from" }
-- { source: surf, metric: surf_wind_kmh,   role: derived, comparable: false, unit: "km/h" }
-- { source: surf, metric: surf_wind_dir,   role: derived, comparable: false, unit: "° from" }
-- { source: surf, metric: surf_tide,       role: derived, comparable: false, unit: "0 low, 1 mid, 2 high" }
+# address: derived, and comparable with nothing a device here reads. Each row describes the next local day, the `_d2`
+# rows the day after; `surf_spots_good` counts the good spots on both days.
+- { source: surf, metric: surf_good,          role: derived, comparable: false, unit: "1 = good tomorrow" }
+- { source: surf, metric: surf_kw,            role: derived, comparable: false, unit: "kW/m" }
+- { source: surf, metric: surf_from_h,        role: derived, comparable: false, unit: "local hour" }
+- { source: surf, metric: surf_to_h,          role: derived, comparable: false, unit: "local hour" }
+- { source: surf, metric: surf_swell_m,       role: derived, comparable: false, unit: "m" }
+- { source: surf, metric: surf_period_s,      role: derived, comparable: false, unit: "s" }
+- { source: surf, metric: surf_swell_dir,     role: derived, comparable: false, unit: "° from" }
+- { source: surf, metric: surf_mixed,         role: derived, comparable: false, unit: "1 = two swells" }
+- { source: surf, metric: surf_swell2_m,      role: derived, comparable: false, unit: "m" }
+- { source: surf, metric: surf_period2_s,     role: derived, comparable: false, unit: "s" }
+- { source: surf, metric: surf_swell2_dir,    role: derived, comparable: false, unit: "° from" }
+- { source: surf, metric: surf_wind_kmh,      role: derived, comparable: false, unit: "km/h" }
+- { source: surf, metric: surf_wind_dir,      role: derived, comparable: false, unit: "° from" }
+- { source: surf, metric: surf_tide,          role: derived, comparable: false, unit: "0 low, 1 mid, 2 high" }
+- { source: surf, metric: surf_good_d2,       role: derived, comparable: false, unit: "1 = good the day after" }
+- { source: surf, metric: surf_kw_d2,         role: derived, comparable: false, unit: "kW/m" }
+- { source: surf, metric: surf_from_h_d2,     role: derived, comparable: false, unit: "local hour" }
+- { source: surf, metric: surf_to_h_d2,       role: derived, comparable: false, unit: "local hour" }
+- { source: surf, metric: surf_swell_m_d2,    role: derived, comparable: false, unit: "m" }
+- { source: surf, metric: surf_period_s_d2,   role: derived, comparable: false, unit: "s" }
+- { source: surf, metric: surf_swell_dir_d2,  role: derived, comparable: false, unit: "° from" }
+- { source: surf, metric: surf_mixed_d2,      role: derived, comparable: false, unit: "1 = two swells" }
+- { source: surf, metric: surf_swell2_m_d2,   role: derived, comparable: false, unit: "m" }
+- { source: surf, metric: surf_period2_s_d2,  role: derived, comparable: false, unit: "s" }
+- { source: surf, metric: surf_swell2_dir_d2, role: derived, comparable: false, unit: "° from" }
+- { source: surf, metric: surf_wind_kmh_d2,   role: derived, comparable: false, unit: "km/h" }
+- { source: surf, metric: surf_wind_dir_d2,   role: derived, comparable: false, unit: "° from" }
+- { source: surf, metric: surf_tide_d2,       role: derived, comparable: false, unit: "0 low, 1 mid, 2 high" }
+- { source: surf, metric: surf_spots_good,    role: derived, comparable: false, unit: "spots, both days" }
