@@ -11,6 +11,7 @@ inside SURF_HOURS, or the first run when none fit. Every number is a first guess
 from __future__ import annotations
 
 import math
+from datetime import date as _date
 from pathlib import Path
 
 import yaml
@@ -24,13 +25,49 @@ COMPASS = "N NNE NE ENE E ESE SE SSE S SSW SW WSW W WNW NW NNW".split()
 WORDS = {
     "en": {"swell": "{h} m at {t} s from the {d}", "mix": ", mixed with {h} m at {t} s from the {d}",
            "wind": "wind {w} km/h {d} ({how})", "offshore": "offshore", "light": "light",
-           "tide": "{x} tide", "low": "low", "mid": "mid", "high": "high"},
+           "tide": "{x} tide", "low": "low", "mid": "mid", "high": "high",
+           "b_head": "🌊 Surf in the next two days", "b_best": "• {name}, best {f}:00–{t}:00 (good {runs})",
+           "b_out": "• {name}, good {runs}, outside your hours", "b_big": " · big for you right now",
+           "b_waves": "  waves {h} m every {t} s, from the {d}", "b_mix": ", mixed with {h} m every {t} s from the {d}",
+           "b_power": "  power {kw} kW/m · wind {w} km/h", "b_from": " from the {d}", "b_off": ", offshore",
+           "b_glassy": ", glassy", "b_tide": " · tide {x}", "b_none": "nothing looks good",
+           "b_foot": "A model, not a surf report. Check before you go.\nHow was it? Tap below, or write:",
+           "b_foot0": "A model, not a surf report. Check before you go.\nHow was it? Write:",
+           "days": "Monday Tuesday Wednesday Thursday Friday Saturday Sunday".split(),
+           "months": "Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec".split(),
+           "didnt": "Didn't go", "elsewhere": "Surfed somewhere else",
+           "ask": "Anything to add? Size, crowd, how you felt. One line, or ignore me.",
+           "ask_else": "Where, and how was it? One line, or ignore me."},
     "es": {"swell": "{h} m a {t} s del {d}", "mix": ", mezclado con {h} m a {t} s del {d}",
            "wind": "viento {w} km/h {d} ({how})", "offshore": "terral", "light": "flojo",
-           "tide": "marea {x}", "low": "baja", "mid": "media", "high": "alta"},
+           "tide": "marea {x}", "low": "baja", "mid": "media", "high": "alta",
+           "b_head": "🌊 Olas en los próximos dos días", "b_best": "• {name}, mejor {f}:00–{t}:00 (bueno {runs})",
+           "b_out": "• {name}, bueno {runs}, fuera de tu horario", "b_big": " · grande para ti ahora",
+           "b_waves": "  olas {h} m cada {t} s, del {d}", "b_mix": ", mezcladas con {h} m cada {t} s del {d}",
+           "b_power": "  potencia {kw} kW/m · viento {w} km/h", "b_from": " del {d}", "b_off": ", terral",
+           "b_glassy": ", como un espejo", "b_tide": " · marea {x}", "b_none": "nada parece bueno",
+           "b_foot": "Es un modelo, no un parte de surf. Míralas antes de ir.\n¿Cómo estuvo? Toca abajo, o escribe:",
+           "b_foot0": "Es un modelo, no un parte de surf. Míralas antes de ir.\n¿Cómo estuvo? Escribe:",
+           "days": "lunes martes miércoles jueves viernes sábado domingo".split(),
+           "months": "ene feb mar abr may jun jul ago sep oct nov dic".split(),
+           "didnt": "No fui", "elsewhere": "Surfeé en otro sitio",
+           "ask": "¿Algo que añadir? Tamaño, gente, cómo te sentiste. Una línea, o ignórame.",
+           "ask_else": "¿Dónde, y cómo estuvo? Una línea, o ignórame."},
     "id": {"swell": "{h} m, {t} s dari {d}", "mix": ", bercampur {h} m, {t} s dari {d}",
            "wind": "angin {w} km/h {d} ({how})", "offshore": "dari darat", "light": "lemah",
-           "tide": "air {x}", "low": "surut", "mid": "sedang", "high": "pasang"},
+           "tide": "air {x}", "low": "surut", "mid": "sedang", "high": "pasang",
+           "b_head": "🌊 Ombak dua hari ke depan", "b_best": "• {name}, terbaik {f}:00–{t}:00 (bagus {runs})",
+           "b_out": "• {name}, bagus {runs}, di luar jam bebasmu", "b_big": " · besar untukmu sekarang",
+           "b_waves": "  ombak {h} m tiap {t} s, dari {d}", "b_mix": ", bercampur {h} m tiap {t} s dari {d}",
+           "b_power": "  tenaga {kw} kW/m · angin {w} km/h", "b_from": " dari {d}", "b_off": ", dari darat",
+           "b_glassy": ", mulus", "b_tide": " · air {x}", "b_none": "sepertinya tidak ada yang bagus",
+           "b_foot": "Ini model, bukan laporan surf. Cek dulu sebelum berangkat.\nBagaimana ombaknya? Ketuk di bawah, atau tulis:",
+           "b_foot0": "Ini model, bukan laporan surf. Cek dulu sebelum berangkat.\nBagaimana ombaknya? Tulis:",
+           "days": "Senin Selasa Rabu Kamis Jumat Sabtu Minggu".split(),
+           "months": "Jan Feb Mar Apr Mei Jun Jul Agu Sep Okt Nov Des".split(),
+           "didnt": "Tidak jadi pergi", "elsewhere": "Selancar di tempat lain",
+           "ask": "Ada yang mau ditambahkan? Ukuran, keramaian, perasaanmu. Satu baris, atau abaikan saja.",
+           "ask_else": "Di mana, dan bagaimana? Satu baris, atau abaikan saja."},
 }
 
 
@@ -219,3 +256,69 @@ def line(spot: dict, a: dict, locale: str) -> str:
     if a.get("tide"):
         out += ", " + W["tide"].format(x=W[a["tide"]])
     return out + " → " + windy(spot)
+
+
+def pick(results: list[tuple[dict, dict]], n: int = 3) -> list[tuple[dict, dict]]:
+    """Good spots only: his hours first, then by power, most first. At most n."""
+    good = [r for r in results if r[1]["good"]]
+    return sorted(good, key=lambda r: (not r[1]["inside"], -r[1]["kw"]))[:n]
+
+
+def spot_block(spot: dict, a: dict, locale: str, comfort_kw: float) -> str:
+    """The four lines of one spot: when, waves, power and wind and tide, the Windy link."""
+    W = WORDS.get(locale, WORDS["en"])
+    runs = ", ".join(f"{f:02d}–{t:02d}" for f, t in a["runs"])
+    if a["inside"]:
+        f, t = a["window"]
+        l1 = W["b_best"].format(name=spot["name"], f=f"{f:02d}", t=f"{t + 1:02d}", runs=runs)
+    else:
+        l1 = W["b_out"].format(name=spot["name"], runs=runs)
+    if a["kw"] > comfort_kw:
+        l1 += W["b_big"]
+    s = a["swell"]
+    l2 = W["b_waves"].format(h=f"{s['h']:.1f}", t=f"{s['t']:.0f}", d=_compass(s["dir"], locale))
+    if a.get("second"):
+        x = a["second"]
+        l2 += W["b_mix"].format(h=f"{x['h']:.1f}", t=f"{x['t']:.0f}", d=_compass(x["dir"], locale))
+    off = a["wdir"] is not None and within(a["wdir"], spot["offshore"])
+    glassy = a["wind"] < GLASSY_KMH and not off
+    l3 = W["b_power"].format(kw=f"{a['kw']:.0f}", w=f"{a['wind']:.0f}")
+    if a["wdir"] is not None and not glassy:
+        l3 += W["b_from"].format(d=_compass(a["wdir"], locale))
+    l3 += W["b_off"] if off else W["b_glassy"] if glassy else ""
+    if a.get("tide"):
+        l3 += W["b_tide"].format(x=W[a["tide"]])
+    return "\n".join((l1, l2, l3, "  " + windy(spot)))
+
+
+def day_text(date: str, picked: list[tuple[dict, dict]], locale: str, comfort_kw: float) -> str:
+    """"Wednesday 4 Nov" and the blocks, or the heading and that nothing looks good."""
+    W = WORDS.get(locale, WORDS["en"])
+    d = _date.fromisoformat(date)
+    head = f"{W['days'][d.weekday()]} {d.day} {W['months'][d.month - 1]}"
+    if not picked:
+        return f"{head}: {W['b_none']}"
+    return "\n".join([head] + [spot_block(sp, a, locale, comfort_kw) for sp, a in picked])
+
+
+def message(days: list[tuple[str, list]], locale: str, comfort_kw: float, with_buttons: bool) -> str:
+    """The evening message. The rule appends ` {act} <your words>` to it."""
+    W = WORDS.get(locale, WORDS["en"])
+    body = "\n\n".join(day_text(d, p, locale, comfort_kw) for d, p in days)
+    return f"{W['b_head']}\n\n{body}\n\n{W['b_foot' if with_buttons else 'b_foot0']}"
+
+
+def keyboard(spots: list[dict]) -> list[list[dict]]:
+    """Rating row per spot, then the two catch-alls. The shape is the node's `buttons` contract."""
+    if not spots:
+        return []
+    L = ("en", "es", "id")
+    ask = {loc: WORDS[loc]["ask"] for loc in L}
+    rows = []
+    for sp in spots:
+        rows.append([{"text": {loc: f"{sp['name']} {e}" if e == "👍" else e for loc in L}, "value": f"{sp['id']}:{r}",
+                      "stage": "acted", "ask": ask} for e, r in (("👍", "good"), ("👌", "ok"), ("👎", "poor"))])
+    rows.append([{"text": {loc: WORDS[loc]["didnt"] for loc in L}, "value": "didnt-go", "stage": "acknowledged"},
+                 {"text": {loc: WORDS[loc]["elsewhere"] for loc in L}, "value": "elsewhere", "stage": "acted",
+                  "ask": {loc: WORDS[loc]["ask_else"] for loc in L}}])
+    return rows

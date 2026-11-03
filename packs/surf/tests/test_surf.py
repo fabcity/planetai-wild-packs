@@ -186,4 +186,86 @@ assert "14 kW/m, mixed with 0.9 m at 15 s from the SW" in mixed, mixed
 assert "(light)" in S.line(ulu, dict(a, wdir=270.0), "en"), "a glassy wind from elsewhere is not called offshore"
 print("  line: en, es, id with the same numbers and the Windy link")
 
+# ---------------------------------------------------------------- the message and the buttons
+import re  # noqa: E402
+
+nyang = spots["nyang-nyang"]
+A_ULU = {"good": True, "runs": [(5, 18)], "window": (9, 10), "inside": True, "from_h": 9, "to_h": 10,
+         "swell": {"h": 1.0, "t": 13.0, "dir": 203.0, "kw": 8.0}, "second": None, "kw": 8.0, "wind": 9.0, "wdir": 90.0,
+         "tide": "high"}
+assert S.spot_block(ulu, A_ULU, "en", 15) == "\n".join((
+    "• Uluwatu, best 09:00–11:00 (good 05–18)",
+    "  waves 1.0 m every 13 s, from the SSW",
+    "  power 8 kW/m · wind 9 km/h from the E, offshore · tide high",
+    "  https://www.windy.com/-8.815/115.087?swell1,-8.815,115.087,12")), S.spot_block(ulu, A_ULU, "en", 15)
+big = dict(A_ULU, runs=[(16, 17)], window=(16, 17), kw=21.4, wind=4.0, wdir=200.0, tide="mid")
+b = S.spot_block(nyang, big, "en", 15).split("\n")
+assert b[0] == "• Nyang Nyang, best 16:00–18:00 (good 16–17) · big for you right now", b[0]
+assert b[2] == "  power 21 kW/m · wind 4 km/h, glassy · tide mid", "glassy drops the direction: " + b[2]
+assert "big for you" not in S.spot_block(nyang, dict(big, kw=15.0), "en", 15), "kw must be over the comfort, not at it"
+b = S.spot_block(ulu, dict(A_ULU, wind=4.0), "en", 15).split("\n")
+assert b[2].startswith("  power 8 kW/m · wind 4 km/h from the E, offshore"), "light and offshore stays offshore: " + b[2]
+mx = S.spot_block(ulu, dict(A_ULU, second={"h": 0.6, "t": 9.0, "dir": 180.0, "kw": 1.0}), "en", 15).split("\n")
+assert mx[1] == "  waves 1.0 m every 13 s, from the SSW, mixed with 0.6 m every 9 s from the S", mx[1]
+out = S.spot_block(ulu, dict(A_ULU, runs=[(5, 7)], window=(5, 7), inside=False, tide=None), "en", 15).split("\n")
+assert out[0] == "• Uluwatu, good 05–07, outside your hours", out[0]
+assert out[2] == "  power 8 kW/m · wind 9 km/h from the E, offshore", "no tide, no tide words: " + out[2]
+assert S.spot_block(ulu, dict(A_ULU, runs=[(5, 8), (16, 17)], window=(16, 17)), "en", 15).split("\n")[0] == \
+    "• Uluwatu, best 16:00–18:00 (good 05–08, 16–17)", "every run is listed"
+for loc in ("es", "id"):
+    t3 = S.spot_block(ulu, A_ULU, loc, 15)
+    assert "09:00–11:00" in t3 and "05–18" in t3 and "13 s" in t3 and "8 kW/m" in t3 and "9 km/h" in t3, t3
+    assert t3.endswith("swell1,-8.815,115.087,12") and len(t3.split("\n")) == 4, t3
+assert "grande para ti ahora" in S.spot_block(nyang, big, "es", 15) and "besar untukmu sekarang" in S.spot_block(nyang, big, "id", 15)
+assert "del SSO" in S.spot_block(ulu, A_ULU, "es", 15), "es writes west as O"
+
+assert S.day_text("2026-11-04", [(ulu, A_ULU)], "en", 15).startswith("Wednesday 4 Nov\n• Uluwatu")
+assert S.day_text("2026-11-04", [], "en", 15) == "Wednesday 4 Nov: nothing looks good"
+assert S.day_text("2026-11-05", [], "es", 15) == "jueves 5 nov: nada parece bueno"
+assert S.day_text("2026-11-04", [], "id", 15) == "Rabu 4 Nov: sepertinya tidak ada yang bagus"
+assert S.day_text("2026-11-04", [(ulu, A_ULU)], "es", 15).startswith("miércoles 4 nov\n")
+
+msg = S.message([("2026-11-04", [(ulu, A_ULU)]), ("2026-11-05", [])], "en", 15, True)
+assert msg.startswith("🌊 Surf in the next two days\n\nWednesday 4 Nov\n• Uluwatu"), msg
+assert "\n\nThursday 5 Nov: nothing looks good\n\nA model, not a surf report. Check before you go.\n" \
+       "How was it? Tap below, or write:" in msg and msg.endswith("or write:"), msg
+assert S.message([("2026-11-04", [])], "en", 15, False).endswith("Check before you go.\nHow was it? Write:")
+assert S.message([("2026-11-04", [])], "es", 15, True).startswith("🌊 Olas en los próximos dos días\n\n")
+assert S.message([("2026-11-04", [])], "id", 15, True).startswith("🌊 Ombak dua hari ke depan\n\n")
+for loc in ("es", "id"):
+    assert S.message([("2026-11-04", [])], loc, 15, True).endswith(":") and S.message([("2026-11-04", [])], loc, 15, False).endswith(":")
+
+# pick: his hours first, then power, at most three, good only
+def res(sid, kw, inside=True, good=True):
+    return ({"id": sid}, {"good": good, "inside": inside, "kw": kw})
+got = S.pick([res("a", 5), res("b", 20, inside=False), res("c", 9), res("d", 30, good=False), res("e", 12), res("f", 3)])
+assert [r[0]["id"] for r in got] == ["e", "c", "a"], "inside first by kw, three at most: " + str(got)
+assert [r[0]["id"] for r in S.pick([res("a", 5), res("b", 20, inside=False)])] == ["a", "b"]
+assert [r[0]["id"] for r in S.pick([res("a", 5), res("b", 6), res("c", 7)], n=2)] == ["c", "b"]
+assert S.pick([res("d", 30, good=False)]) == [] and S.pick([]) == []
+
+# keyboard: the node's contract (spec B1), checked here because pack tests run without a node checkout
+assert S.keyboard([]) == []
+kb = S.keyboard([ulu, nyang])
+assert len(kb) == 3 and [len(r) for r in kb] == [3, 3, 2] and len(kb) <= 8 and all(len(r) <= 4 for r in kb)
+assert [x["value"] for x in kb[0]] == ["uluwatu:good", "uluwatu:ok", "uluwatu:poor"]
+assert [x["value"] for x in kb[1]] == ["nyang-nyang:good", "nyang-nyang:ok", "nyang-nyang:poor"]
+assert [x["value"] for x in kb[2]] == ["didnt-go", "elsewhere"]
+for x in (y for r in kb for y in r):
+    assert re.fullmatch(r"[a-z0-9:_-]{1,40}", x["value"]), x
+    assert x["stage"] in ("acted", "acknowledged") and set(x["text"]) == {"en", "es", "id"}, x
+    assert all(isinstance(v, str) and v for v in x["text"].values()), x
+    assert set(x) == {"text", "value", "stage"} | ({"ask"} if "ask" in x else set()), x
+    if "ask" in x:
+        assert set(x["ask"]) == {"en", "es", "id"} and all(x["ask"].values()), x
+assert kb[0][0]["text"]["en"] == "Uluwatu 👍" and kb[0][1]["text"]["en"] == "👌" and kb[0][2]["text"]["en"] == "👎"
+assert all(x["stage"] == "acted" and "ask" in x for x in kb[0] + kb[1])
+assert kb[2][0]["stage"] == "acknowledged" and "ask" not in kb[2][0] and kb[2][0]["text"]["en"] == "Didn't go"
+assert kb[2][1]["stage"] == "acted" and "ask" in kb[2][1] and kb[2][1]["text"]["en"] == "Surfed somewhere else"
+assert kb[0][0]["ask"]["en"] == "Anything to add? Size, crowd, how you felt. One line, or ignore me."
+assert kb[2][1]["ask"]["en"] == "Where, and how was it? One line, or ignore me."
+for sid in spots:
+    assert all(re.fullmatch(r"[a-z0-9:_-]{1,40}", f"{sid}:{r}") for r in ("good", "ok", "poor")), sid
+print("  message: every number named, two days, one block per spot; keyboard: node's button contract")
+
 print("surf: all checks passed")
