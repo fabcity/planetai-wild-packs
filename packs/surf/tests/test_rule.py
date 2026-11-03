@@ -1,7 +1,7 @@
-"""surf_tomorrow's SQL on synthetic rows in DuckDB, in Bali time (needs `pip install duckdb`; skipped without it). The
-rule's now() is replaced by a fixed instant, so 16:05 and 17:05 can both be asked. DuckDB is not PostgreSQL, but
-everything the SQL uses (row_number, FILTER, date_trunc on a timestamptz, ->>, chr, string_agg ... ORDER BY) means
-the same in both. Run: python3 packs/surf/tests/test_rule.py
+"""surf_tomorrow's SQL on a synthetic summary row in DuckDB, in Bali time (needs `pip install duckdb`; skipped without
+it). The rule's now() is replaced by a fixed instant, so 16:05 and 17:05 can both be asked. DuckDB is not PostgreSQL,
+but everything the SQL uses (->>, CAST of a timestamptz to a date and to text, extract) reads the session time zone
+the same way in both. Run: python3 packs/surf/tests/test_rule.py
 """
 import json
 import re
@@ -19,44 +19,60 @@ rules = {r["id"]: r for r in yaml.safe_load((HERE.parent / "rules.yml").read_tex
 R = rules["surf_tomorrow"]
 assert (R["level"], R["cooldown_minutes"]) == ("warn", 720), R
 
+BUTTONS = json.dumps([[{"text": {"en": "I went", "es": "Fui", "id": "Saya pergi"}, "value": "went"}]])
 
-def run(now, rows):
-    """now: local 'YYYY-MM-DD HH:MM'. rows: (local ts, spot, good, kw)."""
+
+def meta(fetched="2026-11-02", any_="1"):
+    t = {loc: f"Tomorrow {loc}.\nSurf could be good at Keramas.\nA model screen, not a surf report. Tell me:" for loc in ("en", "es", "id")}
+    return {"fetched": fetched, "any": any_, "buttons": BUTTONS, **{f"text_{k}": v for k, v in t.items()}}
+
+
+def run(now, m):
+    """now: 'YYYY-MM-DD HH:MM' in Bali time (+08). m: the summary sensor's meta."""
     c = duckdb.connect()
     c.execute("SET TimeZone = 'Asia/Makassar'")
-    c.execute("CREATE TABLE readings(ts TIMESTAMPTZ, sensor_id TEXT, metric TEXT, value DOUBLE)")
     c.execute("CREATE TABLE sensors(sensor_id TEXT, meta JSON)")
-    for spot in {r[1] for r in rows}:
-        c.execute("INSERT INTO sensors VALUES (?, ?)", [f"surf-{spot}", json.dumps(
-            {k: f"• {spot} ({k})" for k in ("line_en", "line_es", "line_id")})])
-    for ts, spot, good, kw in rows:
-        for m, v in (("surf_good", good), ("surf_kw", kw)):
-            c.execute("INSERT INTO readings VALUES (CAST(? AS TIMESTAMPTZ), ?, ?, ?)", [ts + ":00+08", f"surf-{spot}", m, v])
-    sql = R["sql"].replace("now()", f"TIMESTAMPTZ '{now}:00+08'")
-    cur = c.execute(sql)
+    c.execute("INSERT INTO sensors VALUES ('surf', ?)", [json.dumps(m)])
+    c.execute("INSERT INTO sensors VALUES ('surf-ulu', ?)", [json.dumps({"fetched": "2026-11-02", "any": "1"})])
+    cur = c.execute(R["sql"].replace("now()", f"TIMESTAMPTZ '{now}:00+08'"))
     cols = [d[0] for d in cur.description]
     return [dict(zip(cols, r)) for r in cur.fetchall()]
 
 
-FOUR = [("2026-11-02 15:00", s, 1, kw) for s, kw in (("ulu", 14), ("keramas", 22), ("bingin", 6), ("sanur", 9))]
-out = run("2026-11-02 17:05", FOUR)
+out = run("2026-11-02 17:05", meta())
 assert len(out) == 1 and out[0]["sensor_id"] == "surf", out
-assert out[0]["lines_en"].split("\n") == ["• keramas (line_en)", "• ulu (line_en)", "• sanur (line_en)"], out
-assert out[0]["lines_es"].startswith("• keramas (line_es)") and out[0]["lines_id"].startswith("• keramas (line_id)")
-print("  17:05: one row, the top three by power, each locale's lines")
+assert out[0]["buttons"] == BUTTONS and out[0]["text_en"] == meta()["text_en"], out
+assert out[0]["text_es"] == meta()["text_es"] and out[0]["text_id"] == meta()["text_id"], out
+print("  17:05, fetched today: one row, the summary's three texts and its buttons, untouched")
 
-assert run("2026-11-02 16:05", FOUR) == [], "only at 17:00"
-assert run("2026-11-02 17:05", [("2026-11-02 15:00", "ulu", 0, 0)]) == [], "nothing good, nothing sent"
-assert run("2026-11-02 17:05", [("2026-11-01 15:00", "ulu", 1, 14)]) == [], "yesterday's rows are not tomorrow's surf"
-out = run("2026-11-02 17:05", [("2026-11-02 12:00", "ulu", 1, 14), ("2026-11-02 15:00", "ulu", 0, 0),
-                               ("2026-11-02 15:00", "keramas", 1, 9)])
-assert out and out[0]["lines_en"] == "• keramas (line_en)", "the newest fetch wins"
-assert run("2026-11-02 17:05", [("2026-11-02 18:00", "ulu", 1, 14)]) == [], "nothing from after now"
-print("  16:05, nothing good, yesterday's rows, a later fetch that is not good, rows from the future: no row")
+assert run("2026-11-02 16:05", meta()) == [], "only at 17:00"
+assert run("2026-11-02 17:05", meta(fetched="2026-11-01")) == [], "the node was down: yesterday's summary is not tomorrow's surf"
+assert run("2026-11-02 17:05", meta(any_="0")) == [], "nothing good, nothing sent"
+print("  16:05, a summary from yesterday, any = 0: no row")
 
-returned = {"sensor_id", "lines_en", "lines_es", "lines_id"}
+# The rule fires at 17, where Bali and UTC share a date, so the zone cannot show there. Move the hour test to 0 and
+# ask at 00:30 on 3 Nov in Bali, which is still 2 Nov in UTC: "fetched today" must mean 3 Nov.
+night = {**R, "sql": R["sql"].replace("= 17", "= 0")}
+assert night["sql"] != R["sql"]
+
+
+def at_night(m):
+    c = duckdb.connect()
+    c.execute("SET TimeZone = 'Asia/Makassar'")
+    c.execute("CREATE TABLE sensors(sensor_id TEXT, meta JSON)")
+    c.execute("INSERT INTO sensors VALUES ('surf', ?)", [json.dumps(m)])
+    return c.execute(night["sql"].replace("now()", "TIMESTAMPTZ '2026-11-03 00:30:00+08'")).fetchall()
+
+
+assert len(at_night(meta(fetched="2026-11-03"))) == 1, "3 Nov is today in the session's zone"
+assert at_night(meta(fetched="2026-11-02")) == [], "2 Nov is the UTC date, not the session's"
+print("  at 00:30 +08 (2 Nov in UTC) 'today' is 3 Nov, the session's zone")
+
+returned = {"sensor_id", "text_en", "text_es", "text_id", "buttons"}
+assert set(run("2026-11-02 17:05", meta())[0]) == returned
 for loc, tmpl in R["message"].items():
     ph = set(re.findall(r"\{(\w+)", tmpl))
-    assert ph <= returned | {"act"} and "act" in ph and f"lines_{loc}" in ph, (loc, ph)
-print("  every placeholder is a column or {act}, and each locale asks for an answer")
+    assert ph == {f"text_{loc}", "act"}, (loc, ph)
+    assert tmpl.startswith(f"{{text_{loc}}} {{act}} "), tmpl
+print("  each message is its text, then {act}, then a few words, and every placeholder is a column or {act}")
 print("surf rule: all checks passed")
