@@ -95,6 +95,37 @@ assert S.assess(ulu, d)["window"] == (10, 11), "a window can start anywhere in a
 d = day(range(5, 19), wind=6.0)
 assert S.assess(ulu, d, hours="16:00-18:30")["window"] == (16, 17), "his hours are a setting"
 assert S.assess(ulu, d, hours="09:00-12:00", session_h=3)["window"] == (9, 11), "so is the length of a session"
+# the window is picked by the mean wind over its hours, not the first hour's: 09-10 starts calmer and averages 3.0,
+# 16-17 starts at 3.0 and averages 2.3
+d = day(range(5, 19), wind=6.0)
+d[9]["wind"], d[10]["wind"], d[16]["wind"], d[17]["wind"] = 2.0, 4.0, 3.0, 1.6
+a = S.assess(ulu, d)
+assert a["window"] == (16, 17) and a["inside"], a
+assert abs(a["wind"] - 2.3) < 1e-9, "wind is the mean over the window"
+
+# the numbers over a window: means for t, kw and wind; direction, swell dir and the second swell from its first hour
+d = day([9, 10])
+d[9].update(wdir=80.0, d1=200.0, t1=12.0, h2=0.9, t2=13.0, d2=240.0)
+d[10].update(wdir=100.0, d1=220.0, t1=14.0, h2=None, t2=None, d2=None, wind=5.0)
+a = S.assess(ulu, d)
+assert a["window"] == (9, 10) and a["inside"], a
+assert a["wdir"] == 80.0 and a["swell"]["dir"] == 200.0, "direction comes from the first hour"
+assert a["second"] and a["second"]["dir"] == 240.0 and a["second"]["h"] == 0.9, "so does the second swell"
+assert a["swell"]["t"] == 13.0 and a["wind"] == 4.0, "t and wind are means"
+assert abs(a["kw"] - (S.power(1.5, 12.0) + S.power(1.5, 14.0)) / 2) < 1e-9, a["kw"]
+
+# no window inside his hours: the first run gives the numbers, not the last
+d = day([5, 6, 13, 14])
+a = S.assess(ulu, d)
+assert a["runs"] == [(5, 6), (13, 14)] and a["window"] == a["runs"][0] and not a["inside"], a
+
+# a window stays inside its run: 09-11 is his, but only 09-10 is good, so a three-hour session is not inside
+a = S.assess(ulu, day([9, 10]), hours="09:00-12:00", session_h=3)
+assert a["window"] == (9, 10) and not a["inside"], a
+
+# a session of zero hours is a session of one, not a division by zero
+assert S.assess(ulu, day([9, 10]), session_h=0) == S.assess(ulu, day([9, 10]), session_h=1)
+assert S.assess(ulu, day([9, 10]), session_h=0)["window"] == (9, 9)
 print("  window: every good hour, runs of two, lowest mean wind inside his hours, earlier on a tie, means over it")
 
 # ---------------------------------------------------------------- the gates

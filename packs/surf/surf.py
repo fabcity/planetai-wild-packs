@@ -164,6 +164,7 @@ def assess(spot: dict, rows: list[dict], min_period: float = 10.0, hours: str | 
     """Every good hour as `runs`; `window` is the session_h hours inside `hours` with the lowest mean wind (earlier on a
     tie), `inside` True. With none, `window` is the first run and `inside` False. The numbers are means over the window's
     hours, the direction, second swell and tide from its first hour."""
+    session_h = max(1, int(session_h))
     runs = good_runs(spot, rows, min_period)
     out = {"good": bool(runs), "runs": runs, "window": None, "inside": False, "from_h": None, "to_h": None,
            "swell": None, "second": None, "kw": 0.0, "wind": None, "wdir": None, "tide": None}
