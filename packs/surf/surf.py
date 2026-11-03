@@ -5,7 +5,8 @@ both judge with this.
 An hour passes when four things hold: a swell from the spot's window, at SURF_MIN_PERIOD seconds or more, with its
 power inside the spot's range; the wind offshore and at most 25 km/h, or under 8 km/h from anywhere; the tide in a
 third of the day's range the spot accepts; and a wind sea under half the swell's height. Two passing hours in a row
-between 05:00 and 18:00 make the spot good, and the longest such run is its window. Every number is a first guess.
+between 05:00 and 18:00 make a good run, and a spot with one is good. Its window is the best SURF_SESSION_H hours
+inside SURF_HOURS, or the first run when none fit. Every number is a first guess.
 """
 from __future__ import annotations
 
@@ -112,25 +113,84 @@ def _passes(r: dict, spot: dict, min_period: float, lo, hi) -> bool:
     return r["ww"] is not None and r["ww"] < 0.5 * s["h"]
 
 
-def assess(spot: dict, rows: list[dict], min_period: float = 10.0) -> dict:
+DEFAULT_HOURS = "08:30-12:00,16:00-18:30"
+
+
+def _hours(s: str) -> list[int]:
+    out = set()
+    for part in s.split(","):
+        a, b = part.strip().split("-")
+        (ah, am), (bh, bm) = (map(int, x.split(":")) for x in (a, b))
+        out |= {h for h in range(24) if ah * 60 + am <= h * 60 and h * 60 + 60 <= bh * 60 + bm}
+    if not out:
+        raise ValueError(s)
+    return sorted(out)
+
+
+def parse_hours(s: str) -> list[int]:
+    """"08:30-12:00,16:00-18:30" -> [9, 10, 11, 16, 17]: the hourly rows h with start <= h:00 and h:00 + 1 h <= end.
+    Anything malformed gives the default's hours; the adapter warns."""
+    try:
+        return _hours(s)
+    except (AttributeError, ValueError):
+        return _hours(DEFAULT_HOURS)
+
+
+def _tide_range(rows):
     seas = [r["sea"] for r in rows if r["sea"] is not None]
-    lo, hi = (min(seas), max(seas)) if seas else (None, None)
+    return (min(seas), max(seas)) if seas else (None, None)
+
+
+def good_runs(spot: dict, rows: list[dict], min_period: float = 10.0) -> list[tuple[int, int]]:
+    """Inclusive runs of at least two passing hours between 05 and 18."""
+    lo, hi = _tide_range(rows)
     by_hr = {r["hr"]: r for r in rows}
-    best, run = None, []
-    for hr in range(FIRST_H, LAST_H + 1):
-        if hr in by_hr and _passes(by_hr[hr], spot, min_period, lo, hi):
+    runs, run = [], []
+    for hr in range(FIRST_H, LAST_H + 2):
+        if hr <= LAST_H and hr in by_hr and _passes(by_hr[hr], spot, min_period, lo, hi):
             run.append(hr)
-            if len(run) >= 2 and (best is None or len(run) > len(best)):
-                best = list(run)
-        else:
-            run = []
-    first = by_hr.get(best[0] if best else FIRST_H) or {"wind": None, "wdir": None, "sea": None}
-    s, second = _swells(first, spot, min_period) if best else (None, None)
-    return {"good": bool(best), "from_h": best[0] if best else None, "to_h": best[-1] if best else None,
-            "swell": s, "second": second,
-            "kw": sum(_swells(by_hr[h], spot, min_period)[0]["kw"] for h in best) / len(best) if best else 0.0,
-            "wind": first["wind"] if best else None, "wdir": first["wdir"] if best else None,
-            "tide": tide_class(first["sea"], lo, hi) if best else None}
+            continue
+        if len(run) >= 2:
+            runs.append((run[0], run[-1]))
+        run = []
+    return runs
+
+
+def _mean(xs):
+    return sum(xs) / len(xs)
+
+
+def assess(spot: dict, rows: list[dict], min_period: float = 10.0, hours: str | None = None, session_h: int = 2) -> dict:
+    """Every good hour as `runs`; `window` is the session_h hours inside `hours` with the lowest mean wind (earlier on a
+    tie), `inside` True. With none, `window` is the first run and `inside` False. The numbers are means over the window's
+    hours, the direction, second swell and tide from its first hour."""
+    runs = good_runs(spot, rows, min_period)
+    out = {"good": bool(runs), "runs": runs, "window": None, "inside": False, "from_h": None, "to_h": None,
+           "swell": None, "second": None, "kw": 0.0, "wind": None, "wdir": None, "tide": None}
+    if not runs:
+        return out
+    by_hr = {r["hr"]: r for r in rows}
+    mine = set(parse_hours(hours or DEFAULT_HOURS))
+    best = None
+    for a, b in runs:
+        for f in range(a, b - session_h + 2):
+            span = range(f, f + session_h)
+            if all(h in mine for h in span):
+                w = _mean([by_hr[h]["wind"] for h in span])
+                if best is None or w < best[0]:
+                    best = (w, f, f + session_h - 1)
+    out["inside"] = best is not None
+    f, t = best[1:] if best else runs[0]
+    span = range(f, t + 1)
+    lo, hi = _tide_range(rows)
+    sw = [_swells(by_hr[h], spot, min_period) for h in span]
+    first, second = sw[0]
+    out.update(window=(f, t), from_h=f, to_h=t, second=second,
+               swell={"h": _mean([s["h"] for s, _ in sw]), "t": _mean([s["t"] for s, _ in sw]), "dir": first["dir"],
+                      "kw": _mean([s["kw"] for s, _ in sw])},
+               kw=_mean([s["kw"] for s, _ in sw]), wind=_mean([by_hr[h]["wind"] for h in span]),
+               wdir=by_hr[f]["wdir"], tide=tide_class(by_hr[f]["sea"], lo, hi))
+    return out
 
 
 def _compass(deg: float, locale: str) -> str:

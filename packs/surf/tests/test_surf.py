@@ -56,17 +56,46 @@ for sid, sp in spots.items():
     assert sp["tide"] <= {"low", "mid", "high"} and sp["tide"], sp
 print("  spots.yml: 14 spots, ranges ordered, tides named")
 
-# ---------------------------------------------------------------- the window
+# ---------------------------------------------------------------- his hours
+assert S.parse_hours("08:30-12:00,16:00-18:30") == [9, 10, 11, 16, 17]
+assert S.parse_hours("16:00-18:30") == [16, 17]
+assert S.parse_hours("nonsense") == S.parse_hours("") == S.parse_hours(None) == [9, 10, 11, 16, 17], "malformed: the default"
+print("  parse_hours: the hours that fit whole inside a range")
+
+# ---------------------------------------------------------------- good hours, runs, the window
 a = S.assess(ulu, day([6]))
-assert not a["good"], "one passing hour is not a window"
+assert not a["good"] and a["runs"] == [] and a["window"] is None and not a["inside"], "one passing hour is not a run"
+assert a["swell"] is None and a["kw"] == 0.0 and a["wind"] is None and a["tide"] is None, a
 a = S.assess(ulu, day([6, 7]))
-assert a["good"] and (a["from_h"], a["to_h"]) == (6, 7), a
+assert a["good"] and a["runs"] == [(6, 7)] and a["window"] == (6, 7) and not a["inside"], a
+assert (a["from_h"], a["to_h"]) == (6, 7), "v1's keys follow the window until the adapter drops them"
 a = S.assess(ulu, day([4, 5, 6, 9, 10, 11, 12, 19, 20]))
-assert (a["from_h"], a["to_h"]) == (9, 12), "the longest run inside 05-18; hours outside it do not count"
-a = S.assess(ulu, day([6, 7, 9, 10]))
-assert (a["from_h"], a["to_h"]) == (6, 7), "a tie goes to the earlier run"
+assert a["runs"] == [(5, 6), (9, 12)], "hours outside 05-18 do not count"
+assert a["window"] == (9, 10) and a["inside"], "equal wind: the earlier window"
+a = S.assess(ulu, day([5, 6, 7, 8, 16, 17]))
+assert a["runs"] == [(5, 8), (16, 17)] and a["window"] == (16, 17) and a["inside"], a
+a = S.assess(ulu, day([5, 6, 7]))
+assert a["runs"] == [(5, 7)] and a["window"] == (5, 7) and not a["inside"], "good, but outside his hours: the first run"
 assert round(a["kw"], 1) == round(S.power(1.5, 12.0), 1), a
-print("  window: two hours in a row, longest run, earlier on a tie, mean power")
+
+d = day(range(5, 19), wind=6.0)
+d[9]["wind"] = d[10]["wind"] = 2.0
+d[9]["h1"], d[10]["h1"] = 1.0, 2.0
+a = S.assess(ulu, d)
+assert a["runs"] == [(5, 18)] and a["window"] == (9, 10) and a["inside"], a
+assert a["wind"] == 2.0 and a["wdir"] == 90.0 and a["tide"] == "mid", a
+assert abs(a["kw"] - (S.power(1.0, 12.0) + S.power(2.0, 12.0)) / 2) < 1e-9, "kw is the mean of power at 09 and 10"
+assert abs(a["swell"]["h"] - 1.5) < 1e-9 and a["swell"]["t"] == 12.0 and a["swell"]["dir"] == 210.0, a["swell"]
+d[9]["sea"], d[10]["sea"] = -0.9, 0.9
+assert S.assess(ulu, d)["tide"] == "low", "the tide is the first hour's"
+
+d = day(range(5, 19), wind=6.0)
+d[10]["wind"] = d[11]["wind"] = 2.0
+assert S.assess(ulu, d)["window"] == (10, 11), "a window can start anywhere in a run"
+d = day(range(5, 19), wind=6.0)
+assert S.assess(ulu, d, hours="16:00-18:30")["window"] == (16, 17), "his hours are a setting"
+assert S.assess(ulu, d, hours="09:00-12:00", session_h=3)["window"] == (9, 11), "so is the length of a session"
+print("  window: every good hour, runs of two, lowest mean wind inside his hours, earlier on a tie, means over it")
 
 # ---------------------------------------------------------------- the gates
 assert not S.assess(ulu, day([6, 7], wdir=270, wind=15))["good"], "15 km/h onshore fails"
@@ -103,7 +132,7 @@ ULU, GB = 0, 1
 r = fixture_day(ULU, "2026-10-28")
 assert len(r) == 24 and r[0]["hr"] == 0 and r[23]["hr"] == 23, r[:1]
 a = S.assess(ulu, r)
-assert a["good"] and a["from_h"] <= 5 and a["to_h"] >= 12, a
+assert a["good"] and a["runs"][0] == (5, 12), a
 assert S.assess(ulu, fixture_day(ULU, "2026-11-01"))["good"]
 assert not S.assess(ulu, fixture_day(ULU, "2026-10-31"))["good"]
 assert not S.assess(spots["green-bowl"], fixture_day(GB, "2026-11-01"))["good"]
