@@ -3,8 +3,8 @@ name: Surf, two days
 description: >-
   At five in the evening, up to three spots for each of the next two days where surf could be good, each with its best
   window (your own hours first), swell, power, wind, tide and a Windy link, from Open-Meteo's GFS Wave swell, sea level
-  and wind. A screen of a 16 km model, not a surf report. Rate it with a tap, `planetai run surf review` keeps a journal for
-  each spot, and `planetai run surf ask <spot>` reads any spot's two days.
+  and wind. The model's grid is 16 km, so check the spot before you go. Rate it with a tap, `planetai run surf review`
+  keeps a journal for each spot, and `planetai run surf ask <spot>` reads any spot's two days.
 author: Tomas Diez (Fab City Foundation)
 version: 0.2.0
 requires: { node: ">=0.91.0" }

@@ -23,7 +23,7 @@ BUTTONS = json.dumps([[{"text": {"en": "I went", "es": "Fui", "id": "Saya pergi"
 
 
 def meta(fetched="2026-11-02", any_="1"):
-    t = {loc: f"Tomorrow {loc}.\nSurf could be good at Keramas.\nA model screen, not a surf report. Tell me:" for loc in ("en", "es", "id")}
+    t = {loc: f"Tomorrow {loc}.\nSurf could be good at Keramas.\nCheck before you go. Tell me:" for loc in ("en", "es", "id")}
     return {"fetched": fetched, "any": any_, "buttons": BUTTONS, **{f"text_{k}": v for k, v in t.items()}}
 
 

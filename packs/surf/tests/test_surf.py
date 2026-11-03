@@ -242,8 +242,17 @@ assert "\n\nThursday 5 Nov: nothing looks good\n\n" in msg and msg.endswith("Che
 assert "Tap below" not in msg, "the pack cannot know whether the node sends buttons: one footer, the rule's {act} follows it"
 assert S.message([("2026-11-04", [])], "es", 15).startswith("🌊 Olas en los próximos dos días\n\n")
 assert S.message([("2026-11-04", [])], "id", 15).startswith("🌊 Ombak dua hari ke depan\n\n")
-assert S.message([("2026-11-04", [])], "es", 15).endswith("Compruébalo antes de ir.\n¿Cómo estuvo? Escribe:")
-assert S.message([("2026-11-04", [])], "id", 15).endswith("Cek dulu sebelum berangkat.\nBagaimana ombaknya? Tulis:")
+assert msg.endswith("\n\nThis comes from a 16 km model. Check before you go.\nHow was it? Write:"), msg
+assert S.message([("2026-11-04", [])], "es", 15).endswith(
+    "\n\nEsto sale de un modelo de 16 km. Compruébalo antes de ir.\n¿Cómo estuvo? Escribe:")
+assert S.message([("2026-11-04", [])], "id", 15).endswith(
+    "\n\nIni berasal dari model 16 km. Cek dulu sebelum berangkat.\nBagaimana ombaknya? Tulis:")
+for loc in ("en", "es", "id"):         # Tomas's voice: no "a model, not a surf report" pair, in the footer or the listing
+    assert "not a surf report" not in S.message([("2026-11-04", [])], loc, 15) and "no un parte" not in S.WORDS[loc]["b_foot"]
+    assert "bukan laporan" not in S.WORDS[loc]["b_foot"], loc
+import yaml  # noqa: E402
+desc = yaml.safe_load((HERE.parent / "pack.yaml").read_text())["description"]
+assert "not a surf report" not in desc and "16 km" in desc, desc
 import inspect  # noqa: E402
 assert list(inspect.signature(S.message).parameters) == ["days", "locale", "comfort_kw"], "no with_buttons"
 
