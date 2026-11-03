@@ -103,6 +103,9 @@ T11 = ("🌊 Surf in the next two days\n\nWednesday 4 Nov\n"
        "• Keramas, good 05:00–09:00, 16:00–18:00, outside your hours\n  waves 1.0 m every 13 s, from the S\n\n"
        "Thursday 5 Nov\n• Uluwatu, best 14:00–16:00 (good 13:00–17:00)")
 assert R.windows_in(T11, spots) == {"uluwatu": (9, 10), "keramas": (5, 8)}, R.windows_in(T11, spots)
+assert R.windows_in("• Keramas, good 17:00–18:30, outside your hours", spots) == {"keramas": (17, 18)}, "18:30 is the hour 18"
+assert R.windows_in("• Keramas, good 05:00–09:00, 17:00–18:30, outside your hours", spots) == {"keramas": (5, 8)}
+assert R.windows_in("• Keramas, best 17:00–18:00 (good 17:00–18:30)", spots) == {"keramas": (17, 17)}
 none = S.message([("2026-10-28", []), ("2026-10-29", [(spots["uluwatu"], _a((9, 10), [(5, 11)]))])], "en", 15)
 assert R.windows_in(none, spots) == {}, "day 2 is not tomorrow"
 print("  windows_in: v1.1 first day block only, en/es/id, best and outside-hours lines")

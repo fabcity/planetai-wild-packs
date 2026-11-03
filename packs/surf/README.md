@@ -79,10 +79,10 @@ three-hour timer alone. The bot can run it when I ask it how Bingin looks tomorr
 An hour passes when a swell comes from the spot's window with a long enough period and its power is inside the
 spot's range, the wind is offshore (and not over 25 km/h) or under 8 km/h from anywhere, the tide is in a third of
 the day's range the spot works on, and the wind sea is under half the swell. Every passing hour between 05:00 and
-18:00 is a good hour, in runs of at least two, and a spot with a run is good. The last good hour is 17:00 to 18:00,
-since the sun sets in Bali at about 18:00 to 18:40 all year. Every time in the message is written HH:00–HH:00, the hour
-something starts and the hour it ends, so "good 16:00–18:00" is the hours 16 and 17. When two swells come from the
-window at different angles, the line says "mixed".
+18:30 is a good hour, in runs of at least two, and a spot with a run is good. The hour from 18:00 stops at 18:30,
+since the sun sets in Bali at about 18:00 to 18:40 all year. Times in the message are written HH:00–HH:00, the hour
+something starts and the hour it ends, so "good 16:00–18:00" is the hours 16 and 17, and a run that reaches the last
+hour reads "good 17:00–18:30". When two swells come from the window at different angles, the line says "mixed".
 
 The numbers in a spot's lines are means over its best window. The direction, the second swell and the tide come from
 the window's first hour. When no window fits inside my hours, they are the first good run's. The power that decides

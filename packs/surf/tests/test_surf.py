@@ -70,8 +70,8 @@ a = S.assess(ulu, day([6, 7]))
 assert a["good"] and a["runs"] == [(6, 7)] and a["window"] == (6, 7) and not a["inside"], a
 a = S.assess(ulu, day([4, 5, 6, 9, 10, 11, 12, 19, 20]))
 assert a["runs"] == [(5, 6), (9, 12)], "hours outside 05:00-18:00 do not count"
-assert S.assess(ulu, day(range(24)))["runs"] == [(5, 17)], "the last good hour is 17 (17:00-18:00), the first is 05"
-assert S.assess(ulu, day([17, 18]))["runs"] == [], "17 alone is not a run: the hour 18:00-19:00 is after sunset"
+assert S.assess(ulu, day(range(24)))["runs"] == [(5, 18)], "the first good hour is 05, the last is 18 (until dusk, 18:30)"
+assert S.assess(ulu, day([17, 18]))["runs"] == [(17, 18)], "an evening run at the end of the day counts"
 assert a["window"] == (9, 10) and a["inside"], "equal wind: the earlier window"
 a = S.assess(ulu, day([5, 6, 7, 8, 16, 17]))
 assert a["runs"] == [(5, 8), (16, 17)] and a["window"] == (16, 17) and a["inside"], a
@@ -83,7 +83,7 @@ d = day(range(5, 19), wind=6.0)
 d[9]["wind"] = d[10]["wind"] = 2.0
 d[9]["h1"], d[10]["h1"] = 1.0, 2.0
 a = S.assess(ulu, d)
-assert a["runs"] == [(5, 17)] and a["window"] == (9, 10) and a["inside"], a
+assert a["runs"] == [(5, 18)] and a["window"] == (9, 10) and a["inside"], a
 assert a["wind"] == 2.0 and a["wdir"] == 90.0 and a["tide"] == "mid", a
 assert abs(a["kw"] - (S.power(1.0, 12.0) + S.power(2.0, 12.0)) / 2) < 1e-9, "kw is the mean of power at 09 and 10"
 assert abs(a["swell"]["h"] - 1.5) < 1e-9 and a["swell"]["t"] == 12.0 and a["swell"]["dir"] == 210.0, a["swell"]
@@ -192,10 +192,12 @@ assert not S.assess(spots["green-bowl"], fixture_day(GB, "2026-11-01"))["good"]
 bal = S.assess(spots["balangan"], fixture_day(ULU, "2026-11-01"))
 assert bal["runs"] == [(11, 12)] and bal["window"] == (11, 11) and bal["inside"], bal
 a2 = S.assess(ulu, fixture_day(ULU, "2026-11-02"))
-assert a2["runs"] == [] and not a2["good"], "17-18 was good only with the hour 18, which is past sunset: " + str(a2)
-assert S.assess(spots["green-bowl"], fixture_day(GB, "2026-11-02"))["runs"] == [], "good 17-18 before; 18 is past sunset"
-assert S.assess(ulu, fixture_day(ULU, "2026-10-28"))["runs"] == [(5, 12), (15, 17)], "15-18 before"
-print("  archive: Uluwatu good 28 Oct and 1 Nov, not 31 Oct; Green Bowl not 1 Nov; 2 Nov was good only at 17-18 (spec §5)")
+assert a2["runs"] == [(17, 18)] and a2["window"] == (17, 17) and a2["inside"], a2
+assert S.spot_block(ulu, dict(S.assess(ulu, fixture_day(ULU, "2026-11-02")), swell={"h": 1, "t": 12, "dir": 200}),
+                    "en", 15).split("\n")[0] == "• Uluwatu, best 17:00–18:00 (good 17:00–18:30)", "a run ending at 18 ends at dusk"
+assert S.assess(spots["green-bowl"], fixture_day(GB, "2026-11-02"))["runs"] == [(17, 18)], "good only at 17-18, spec §5"
+assert S.assess(ulu, fixture_day(ULU, "2026-10-28"))["runs"] == [(5, 12), (15, 18)]
+print("  archive: Uluwatu good 28 Oct and 1 Nov, not 31 Oct; Green Bowl not 1 Nov, good 2 Nov at 17-18 (spec §5)")
 
 # ---------------------------------------------------------------- the message and the buttons
 import re  # noqa: E402
@@ -223,6 +225,12 @@ assert out[0] == "• Uluwatu, good 05:00–08:00, outside your hours", out[0]
 assert out[2] == "  power 8 kW/m · wind 9 km/h from the E, offshore", "no tide, no tide words: " + out[2]
 assert S.spot_block(ulu, dict(A_ULU, runs=[(5, 8), (16, 17)], window=(16, 17)), "en", 15).split("\n")[0] == \
     "• Uluwatu, best 16:00–18:00 (good 05:00–09:00, 16:00–18:00)", "every run is listed, end-exclusive like the window"
+# a run whose last good hour is 18 ends at 18:30 (dusk), every other run at the next hour
+d18 = S.spot_block(ulu, dict(A_ULU, runs=[(5, 8), (17, 18)], window=(17, 17)), "en", 15).split("\n")[0]
+assert d18 == "• Uluwatu, best 17:00–18:00 (good 05:00–09:00, 17:00–18:30)", d18
+d18 = S.spot_block(ulu, dict(A_ULU, runs=[(17, 18)], window=(17, 18), inside=False), "en", 15).split("\n")[0]
+assert d18 == "• Uluwatu, good 17:00–18:30, outside your hours", d18
+assert "good 16:00–18:00" in S.spot_block(ulu, dict(A_ULU, runs=[(16, 17)], window=(16, 17)), "en", 15), "17 ends at 18:00"
 for loc in ("es", "id"):
     t3 = S.spot_block(ulu, A_ULU, loc, 15)
     assert "09:00–11:00" in t3 and "05:00–18:00" in t3 and "13 s" in t3 and "8 kW/m" in t3 and "9 km/h" in t3, t3
