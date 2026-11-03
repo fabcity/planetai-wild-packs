@@ -100,10 +100,10 @@
   },
   {
     "id": "surf",
-    "name": "Surf tomorrow",
+    "name": "Surf, two days",
     "source": "fabcity/planetai-wild-packs/packs/surf",
     "author": "Tomas Diez (Fab City Foundation)",
-    "reads": "At 17:00, up to three surf spots that could be good tomorrow, from Open-Meteo's GFS Wave swell, sea level and wind, each with a Windy link, and a journal of how each spot was (key-free)",
+    "reads": "At 17:00, up to three surf spots a day for the next two days, from Open-Meteo's GFS Wave swell, sea level and wind, each with its best window inside your hours, every number named and a Windy link, buttons to say how it was, a journal of each spot, and `ask` for any spot (key-free)",
     "kind": "code",
     "licence": "Apache-2.0 (code); Open-Meteo data CC BY 4.0, NOAA GFS Wave, Copernicus Marine / MeteoFrance (data)",
     "tested_with": "not yet run on a node",
