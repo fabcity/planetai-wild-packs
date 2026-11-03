@@ -5,8 +5,10 @@ alerts and their answers are the node's, the numbers are fetched again when aske
 
     planetai run surf review [--days 60]
 
-A spot counts when the note names it, by id, name or alias (spots.yml), even if the message did not suggest it. The
-hours shown are the window the message gave that spot, or 06:00 to 10:00. The thresholds are never changed from
+A button answer files under its spot with its rating. A typed note (or an "elsewhere" tap's note) counts for the spots
+it names, by id, name or alias (spots.yml), even if the message did not suggest them; an "elsewhere" with no spot
+named files under "elsewhere", and "didn't go" answers the call and files nothing. The hours shown are the window
+tomorrow's block of the message gave that spot, or 06:00 to 10:00. The thresholds are never changed from
 here: a note is free text, and the people reading this are better at it than a parser.
 """
 from __future__ import annotations
@@ -46,12 +48,44 @@ def find_spots(note: str, spots: dict) -> list[str]:
     return [sid for _, sid in sorted(found)]
 
 
+_RUN = r"\d\d–\d\d(?:, \d\d–\d\d)*"
+
+
+def _line(tmpl: str, name: str) -> re.Pattern:
+    """One spot line of the message, from its WORDS template, in whichever locale."""
+    pat = re.escape(tmpl).replace(re.escape("{name}"), re.escape(name)).replace(re.escape("{runs}"), f"(?P<r>{_RUN})")
+    pat = pat.replace(re.escape("{f}"), r"(?P<f>\d\d)").replace(re.escape("{t}"), r"(?P<t>\d\d)")
+    return re.compile("^" + pat, re.M)
+
+
+def _first_day(text: str) -> str:
+    """The text of the first day block ("Wednesday 4 Nov" and its spots), or all of it: v1 had no day blocks. A day
+    block has no blank line inside it, so it ends at the next one."""
+    heads = "|".join(w for loc in S.WORDS.values() for w in loc["days"])
+    months = "|".join(m for loc in S.WORDS.values() for m in loc["months"])
+    for block in text.split("\n\n"):
+        if re.match(rf"({heads}) \d{{1,2}} ({months})\b", block):
+            return block
+    return text
+
+
 def windows_in(text: str, spots: dict) -> dict[str, tuple[int, int]]:
-    out = {}
+    """Hours of tomorrow's window per spot. v1.1: "best 09:00–11:00" is hours 9 and 10, "good 05–08, outside your
+    hours" is 5 to 8. v1: "Name 5–12:"."""
+    text, out = _first_day(text), {}
     for sid, sp in spots.items():
         m = re.search(re.escape(sp["name"]) + r" (\d+)–(\d+):", text)
         if m:
             out[sid] = (int(m.group(1)), int(m.group(2)))
+        for W in S.WORDS.values():
+            if m := _line(W["b_best"], sp["name"]).search(text):
+                out[sid] = (int(m["f"]), int(m["t"]) - 1)
+            elif m := _line(W["b_out"], sp["name"]).search(text):
+                f, t = m["r"].split(", ")[0].split("–")
+                out[sid] = (int(f), int(t))
+            else:
+                continue
+            break
     return out
 
 
@@ -66,25 +100,43 @@ def _hours(rows: list[dict], spot: dict, span: tuple[int, int]) -> list[dict]:
     return out
 
 
+RATING = {"good": "👍", "ok": "👌", "poor": "👎"}
+
+
+def _filed_under(a: dict, spots: dict) -> tuple[list[str], str | None]:
+    """Where an answer goes and with which rating: the button's spot, the spots an "elsewhere" note names (else
+    "elsewhere"), or the spots a typed note names. didnt-go and a bare acknowledgement file nowhere."""
+    choice, note = a.get("choice") or "", a.get("note") or ""
+    sid, _, rating = choice.rpartition(":")
+    if sid in spots and rating in RATING:
+        return [sid], rating
+    if choice == "elsewhere":
+        return find_spots(note, spots) or ["elsewhere"], None
+    return (find_spots(note, spots) if a.get("stage") == "acted" and note else []), None
+
+
 def journal(alerts: list[dict], actions: list[dict], spots: dict, fetch_day) -> dict[str, list[dict]]:
-    notes = {}
-    for a in actions:
-        if a.get("stage") == "acted" and a.get("note"):
-            notes.setdefault(a["alert_id"], []).append(a)
+    answers = {}
+    for a in actions:                                   # a button tap or a typed note; either answers the call
+        if a.get("stage") in ("acted", "acknowledged"):
+            answers.setdefault(a["alert_id"], []).append(a)
     out: dict[str, list[dict]] = {}
     for al in sorted((a for a in alerts if a.get("rule_id") == RULE), key=lambda a: a["ts"], reverse=True):
         day = (datetime.fromisoformat(al["ts"]).date() + timedelta(days=1)).isoformat()
-        if al["id"] not in notes:
+        if al["id"] not in answers:
             out.setdefault("unanswered", []).append({"alert_id": al["id"], "date": day, "text": al.get("text", "")})
             continue
         win = windows_in(al.get("text", ""), spots)
-        for n in notes[al["id"]]:
-            for sid in find_spots(n["note"], spots):
-                e = {"alert_id": al["id"], "date": day, "note": n["note"], "actor": n.get("actor", ""), "hours": []}
-                try:                                    # one slow or refused archive call costs one spot, not the run
-                    e["hours"] = _hours(fetch_day(spots[sid], day), spots[sid], win.get(sid, DEFAULT_HOURS))
-                except Exception as x:  # noqa: BLE001
-                    e["error"] = f"{type(x).__name__}: {x}"
+        for n in answers[al["id"]]:
+            sids, rating = _filed_under(n, spots)
+            for sid in sids:
+                e = {"alert_id": al["id"], "date": day, "note": n.get("note") or "", "rating": rating,
+                     "actor": n.get("actor", ""), "hours": []}
+                if sid in spots:
+                    try:                                # one slow or refused archive call costs one spot, not the run
+                        e["hours"] = _hours(fetch_day(spots[sid], day), spots[sid], win.get(sid, DEFAULT_HOURS))
+                    except Exception as x:  # noqa: BLE001
+                        e["error"] = f"{type(x).__name__}: {x}"
                 out.setdefault(sid, []).append(e)
     return out
 
@@ -95,12 +147,14 @@ def _f(v, fmt):
 
 def render(j: dict, spots: dict) -> str:
     lines = []
-    for sid, sp in spots.items():
+    for sid, name in [*((i, sp["name"]) for i, sp in spots.items()), ("elsewhere", "Elsewhere")]:
         if sid not in j:
             continue
-        lines.append(sp["name"])
+        lines.append(name)
         for e in j[sid]:
-            lines.append(f"  {e['date']}  \"{e['note']}\"  ({e['actor']}, #{e['alert_id']})")
+            glyph = " " + RATING[e["rating"]] if e.get("rating") else ""
+            quoted = f'  "{e["note"]}"' if e["note"] else ""
+            lines.append(f"  {e['date']}{glyph}{quoted}  ({e['actor']}, #{e['alert_id']})")
             if e.get("error"):
                 lines.append(f"    numbers not fetched ({e['error']}); run it again later")
             for h in e["hours"]:
@@ -137,7 +191,7 @@ def main(argv=None) -> int:
     if len(alerts) >= 1000:                             # /alerts counts every rule's alerts, not only surf's
         print(f"surf review: the node returned its limit of 1000 alerts, so older surf calls may be missing; "
               f"ask for fewer with --days (now {days})", file=sys.stderr)
-    actions = _get(node + "/actions", {"limit": 5000, "stage": "acted"})
+    actions = _get(node + "/actions", {"limit": 5000})
     spots = S.load_spots(Path(_HERE) / "spots.yml")
     print(render(journal(alerts, actions, spots, archive_day), spots))
     return 0

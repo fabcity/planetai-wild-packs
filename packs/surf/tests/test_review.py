@@ -13,7 +13,7 @@ import surf as S  # noqa: E402
 
 spots = S.load_spots(HERE.parent / "spots.yml")
 FX = {k: json.loads((HERE / "fixtures" / f"{k}.json").read_text()) for k in ("swell", "tide", "wind")}
-WHERE = {"uluwatu": 0, "green-bowl": 1}
+WHERE = {"uluwatu": 0, "green-bowl": 1, "keramas": 1}
 asked = []
 
 
@@ -82,4 +82,59 @@ with contextlib.redirect_stderr(err), contextlib.redirect_stdout(io.StringIO()):
     R.main(["--days", "60"])
 assert "1000" in err.getvalue() and "--days" in err.getvalue(), err.getvalue()
 print("  a full page of alerts says older calls may be missing")
+# --- v1.1: the two-day message, and button answers ---
+def _a(window, runs, inside=True, kw=20):
+    return {"good": True, "runs": runs, "window": window, "inside": inside, "second": None, "kw": kw, "wind": 5.0,
+            "wdir": None, "tide": "mid", "swell": {"h": 1.5, "t": 12.0, "dir": 180.0, "kw": kw}}
+
+
+def v11(locale="en", comfort=15):
+    day1 = [(spots["uluwatu"], _a((9, 10), [(5, 11)])), (spots["keramas"], _a((5, 8), [(5, 8)], inside=False, kw=30))]
+    day2 = [(spots["uluwatu"], _a((14, 15), [(13, 16)]))]
+    return S.message([("2026-10-28", day1), ("2026-10-29", day2)], locale, comfort, True) + " /act 812 <your words>"
+
+
+for loc in ("en", "es", "id"):
+    t = v11(loc)
+    assert R.windows_in(t, spots) == {"uluwatu": (9, 10), "keramas": (5, 8)}, (loc, R.windows_in(t, spots), t)
+none = S.message([("2026-10-28", []), ("2026-10-29", [(spots["uluwatu"], _a((9, 10), [(5, 11)]))])], "en", 15, True)
+assert R.windows_in(none, spots) == {}, "day 2 is not tomorrow"
+print("  windows_in: v1.1 first day block only, en/es/id, best and outside-hours lines")
+
+T = v11()
+al = [{"id": 900, "ts": "2026-10-27T17:00:00+08:00", "rule_id": "surf/surf_tomorrow", "text": T},
+      {"id": 901, "ts": "2026-10-28T17:00:00+08:00", "rule_id": "surf/surf_tomorrow", "text": T},
+       {"id": 902, "ts": "2026-10-29T17:00:00+08:00", "rule_id": "surf/surf_tomorrow", "text": T},
+       {"id": 903, "ts": "2026-10-30T17:00:00+08:00", "rule_id": "surf/surf_tomorrow", "text": T}]
+ac = [{"alert_id": 900, "stage": "acted", "actor": "t/tg", "note": "head high, crowded", "choice": "uluwatu:good"},
+      {"alert_id": 901, "stage": "acknowledged", "actor": "t/tg", "note": None, "choice": "didnt-go"},
+      {"alert_id": 902, "stage": "acted", "actor": "t/tg", "note": "went to Green Bowl, fun", "choice": "elsewhere"},
+      {"alert_id": 903, "stage": "acted", "actor": "t/tg", "note": None, "choice": "keramas:poor"}]
+j = R.journal(al, ac, spots, fetch_day)
+assert set(j) == {"uluwatu", "green-bowl", "keramas"}, set(j)
+(u,) = j["uluwatu"]
+assert u["rating"] == "good" and u["note"] == "head high, crowded" and u["alert_id"] == 900, u
+assert [h["hr"] for h in u["hours"]] == [9, 10], "tomorrow's window, not day 2's 14-15"
+assert j["green-bowl"][0]["note"] == "went to Green Bowl, fun" and j["green-bowl"][0]["alert_id"] == 902
+(k,) = j["keramas"]
+assert k["rating"] == "poor" and k["note"] == "" and [h["hr"] for h in k["hours"]] == list(range(5, 9)), k
+assert "unanswered" not in j and not any(e["alert_id"] == 901 for v in j.values() for e in v), "didnt-go: answered, no spot"
+out = R.render(j, spots)
+assert "2026-10-28 👍" in out and "2026-10-31 👎" in out, out
+print("  journal: button answers file under their spot with a rating; didnt-go answers the call, files nothing")
+
+j = R.journal(al[:1], [{"alert_id": 900, "stage": "acted", "actor": "t", "note": "somewhere nobody knows", "choice": "elsewhere"}],
+              spots, fetch_day)
+assert list(j) == ["elsewhere"] and j["elsewhere"][0]["hours"] == [], j
+assert "Elsewhere" in R.render(j, spots) and "somewhere nobody knows" in R.render(j, spots)
+j = R.journal(al[:1], [{"alert_id": 900, "stage": "acted", "actor": "t", "note": "Ulu fun", "choice": None}], spots, fetch_day)
+assert j["uluwatu"][0]["rating"] is None and [h["hr"] for h in j["uluwatu"][0]["hours"]] == [9, 10], "v1.1 text, typed /act note"
+print("  elsewhere with no spot named files under elsewhere; a typed note on v1.1 text still works")
+
+R._get = lambda url, params=None: (seen.append((url, params)) or ([] if url.endswith("/alerts") else []))
+seen = []
+with contextlib.redirect_stdout(io.StringIO()):
+    R.main(["--days", "5"])
+assert [p for u, p in seen if u.endswith("/actions")] == [{"limit": 5000}], seen
+print("  main asks /actions without a stage filter")
 print("surf review: all checks passed")
