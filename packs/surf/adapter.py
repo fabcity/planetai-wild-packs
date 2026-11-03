@@ -117,7 +117,7 @@ def fetch(hc):
             readings += [(now, sid, m + suffix, float(v)) for m, v in values.items() if v is not None]
     picked = [S.pick(d) for d in days]
     buttons = S.keyboard([sp for sp, _ in picked[0]])
-    text = {loc: S.message([(d1, picked[0]), (d2, picked[1])], loc, comfort, bool(picked[0])) for loc in ("en", "es", "id")}
+    text = {loc: S.message([(d1, picked[0]), (d2, picked[1])], loc, comfort) for loc in ("en", "es", "id")}
     first = watch[0]       # the pack has no position of its own, so the summary sits at the first watched spot
     sensors.append({"sensor_id": "surf", "source": "surf", "name": "Surf", "lat": first["lat"], "lon": first["lon"],
                     "indoor": False, "local": False, "kind": "model", "scale": "bioregion", "cadence": "PT3H",

@@ -91,7 +91,7 @@ def _a(window, runs, inside=True, kw=20):
 def v11(locale="en", comfort=15):
     day1 = [(spots["uluwatu"], _a((9, 10), [(5, 11)])), (spots["keramas"], _a((5, 8), [(5, 8)], inside=False, kw=30))]
     day2 = [(spots["uluwatu"], _a((14, 15), [(13, 16)]))]
-    return S.message([("2026-10-28", day1), ("2026-10-29", day2)], locale, comfort, True) + " /act 812 <your words>"
+    return S.message([("2026-10-28", day1), ("2026-10-29", day2)], locale, comfort) + " /act 812 <your words>"
 
 
 for loc in ("en", "es", "id"):
@@ -103,7 +103,7 @@ T11 = ("🌊 Surf in the next two days\n\nWednesday 4 Nov\n"
        "• Keramas, good 05:00–09:00, 16:00–18:00, outside your hours\n  waves 1.0 m every 13 s, from the S\n\n"
        "Thursday 5 Nov\n• Uluwatu, best 14:00–16:00 (good 13:00–17:00)")
 assert R.windows_in(T11, spots) == {"uluwatu": (9, 10), "keramas": (5, 8)}, R.windows_in(T11, spots)
-none = S.message([("2026-10-28", []), ("2026-10-29", [(spots["uluwatu"], _a((9, 10), [(5, 11)]))])], "en", 15, True)
+none = S.message([("2026-10-28", []), ("2026-10-29", [(spots["uluwatu"], _a((9, 10), [(5, 11)]))])], "en", 15)
 assert R.windows_in(none, spots) == {}, "day 2 is not tomorrow"
 print("  windows_in: v1.1 first day block only, en/es/id, best and outside-hours lines")
 

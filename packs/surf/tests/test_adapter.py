@@ -128,10 +128,10 @@ assert set(m) == {"attribution", "fetched", "any", "text_en", "text_es", "text_i
 assert m["fetched"] == "2026-10-27" and m["any"] == "1", m
 assert m["text_en"].startswith("🌊 Surf in the next two days") and "Wednesday 28 Oct" in m["text_en"], m["text_en"]
 assert m["text_es"].startswith("🌊 Olas en los próximos dos días") and m["text_id"].startswith("🌊 Ombak dua hari"), m
-assert "Check before you go.\nHow was it? Tap below, or write:" in m["text_en"], "buttons are offered"
+assert m["text_en"].endswith("Check before you go.\nHow was it? Write:"), "one footer, buttons or not"
 rows = json.loads(m["buttons"])
 assert [r[0]["value"] for r in rows[:-1]] == ["uluwatu:good"] and rows[-1][0]["value"] == "didnt-go", rows
-assert "green-bowl" not in m["buttons"] and len(rows) <= 8 and all(len(r) <= 4 for r in rows)
+assert "Tap below" not in m["text_en"] and "green-bowl" not in m["buttons"] and len(rows) <= 8 and all(len(r) <= 4 for r in rows)
 assert val[("surf", "surf_spots_good")] == 2.0, "Uluwatu, tomorrow and the day after"
 d2 = {m for _, s, m, _ in readings if s == "surf-uluwatu" and m.endswith("_d2")}
 assert d2 == {k + "_d2" for k in ("surf_good", "surf_kw", "surf_from_h", "surf_to_h", "surf_swell_m", "surf_period_s",
@@ -146,8 +146,8 @@ print("  the summary sensor: dates, three texts, the buttons of tomorrow's picks
 env(SURF_SPOTS="green-bowl")
 S = {s["sensor_id"]: s for s in A.fetch(HC())[0]}["surf"]["meta"]
 assert S["any"] == "0" and S["buttons"] == "[]" and "nothing looks good" in S["text_en"], S
-assert "Tap below" not in S["text_en"] and "How was it? Write:" in S["text_en"], S["text_en"]
-print("  nothing good: any 0, no buttons, the write-only footer")
+assert S["text_en"].endswith("How was it? Write:"), S["text_en"]
+print("  nothing good: any 0, no buttons")
 
 cut = {k: [{**d, "hourly": {n: v[:36] for n, v in d["hourly"].items()}} for d in v] for k, v in FX.items()}
 env(SURF_SPOTS="uluwatu")

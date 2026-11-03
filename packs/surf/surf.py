@@ -29,8 +29,7 @@ WORDS = {
            "b_waves": "  waves {h} m every {t} s, from the {d}", "b_mix": ", mixed with {h} m every {t} s from the {d}",
            "b_power": "  power {kw} kW/m · wind {w} km/h", "b_from": " from the {d}", "b_off": ", offshore",
            "b_glassy": ", glassy", "b_tide": " · tide {x}", "b_none": "nothing looks good",
-           "b_foot": "A model, not a surf report. Check before you go.\nHow was it? Tap below, or write:",
-           "b_foot0": "A model, not a surf report. Check before you go.\nHow was it? Write:",
+           "b_foot": "A model, not a surf report. Check before you go.\nHow was it? Write:",
            "days": "Monday Tuesday Wednesday Thursday Friday Saturday Sunday".split(),
            "months": "Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec".split(),
            "didnt": "Didn't go", "elsewhere": "Surfed somewhere else",
@@ -42,8 +41,7 @@ WORDS = {
            "b_waves": "  olas {h} m cada {t} s, del {d}", "b_mix": ", mezcladas con {h} m cada {t} s del {d}",
            "b_power": "  potencia {kw} kW/m · viento {w} km/h", "b_from": " del {d}", "b_off": ", terral",
            "b_glassy": ", como un espejo", "b_tide": " · marea {x}", "b_none": "nada parece bueno",
-           "b_foot": "Es un modelo, no un parte de surf. Compruébalo antes de ir.\n¿Cómo estuvo? Toca abajo, o escribe:",
-           "b_foot0": "Es un modelo, no un parte de surf. Compruébalo antes de ir.\n¿Cómo estuvo? Escribe:",
+           "b_foot": "Es un modelo, no un parte de surf. Compruébalo antes de ir.\n¿Cómo estuvo? Escribe:",
            "days": "lunes martes miércoles jueves viernes sábado domingo".split(),
            "months": "ene feb mar abr may jun jul ago sep oct nov dic".split(),
            "didnt": "No fui", "elsewhere": "Surfeé en otro sitio",
@@ -55,8 +53,7 @@ WORDS = {
            "b_waves": "  ombak {h} m tiap {t} s, dari {d}", "b_mix": ", bercampur {h} m tiap {t} s dari {d}",
            "b_power": "  tenaga {kw} kW/m · angin {w} km/h", "b_from": " dari {d}", "b_off": ", dari darat",
            "b_glassy": ", mulus", "b_tide": " · air {x}", "b_none": "sepertinya tidak ada yang bagus",
-           "b_foot": "Ini model, bukan laporan surf. Cek dulu sebelum berangkat.\nBagaimana ombaknya? Ketuk di bawah, atau tulis:",
-           "b_foot0": "Ini model, bukan laporan surf. Cek dulu sebelum berangkat.\nBagaimana ombaknya? Tulis:",
+           "b_foot": "Ini model, bukan laporan surf. Cek dulu sebelum berangkat.\nBagaimana ombaknya? Tulis:",
            "days": "Senin Selasa Rabu Kamis Jumat Sabtu Minggu".split(),
            "months": "Jan Feb Mar Apr Mei Jun Jul Agu Sep Okt Nov Des".split(),
            "didnt": "Tidak jadi pergi", "elsewhere": "Berselancar di tempat lain",
@@ -282,11 +279,11 @@ def day_text(date: str, picked: list[tuple[dict, dict]], locale: str, comfort_kw
     return "\n".join([head] + [spot_block(sp, a, locale, comfort_kw) for sp, a in picked])
 
 
-def message(days: list[tuple[str, list]], locale: str, comfort_kw: float, with_buttons: bool) -> str:
-    """The evening message. The rule appends ` {act} <your words>` to it."""
+def message(days: list[tuple[str, list]], locale: str, comfort_kw: float) -> str:
+    """The evening message. The rule appends ` {act} <your words>` to it; buttons come under it when the node sends them."""
     W = WORDS.get(locale, WORDS["en"])
     body = "\n\n".join(day_text(d, p, locale, comfort_kw) for d, p in days)
-    return f"{W['b_head']}\n\n{body}\n\n{W['b_foot' if with_buttons else 'b_foot0']}"
+    return f"{W['b_head']}\n\n{body}\n\n{W['b_foot']}"
 
 
 def keyboard(spots: list[dict]) -> list[list[dict]]:

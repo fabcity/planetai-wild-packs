@@ -236,15 +236,16 @@ assert S.day_text("2026-11-05", [], "es", 15) == "jueves 5 nov: nada parece buen
 assert S.day_text("2026-11-04", [], "id", 15) == "Rabu 4 Nov: sepertinya tidak ada yang bagus"
 assert S.day_text("2026-11-04", [(ulu, A_ULU)], "es", 15).startswith("miércoles 4 nov\n")
 
-msg = S.message([("2026-11-04", [(ulu, A_ULU)]), ("2026-11-05", [])], "en", 15, True)
+msg = S.message([("2026-11-04", [(ulu, A_ULU)]), ("2026-11-05", [])], "en", 15)
 assert msg.startswith("🌊 Surf in the next two days\n\nWednesday 4 Nov\n• Uluwatu"), msg
-assert "\n\nThursday 5 Nov: nothing looks good\n\nA model, not a surf report. Check before you go.\n" \
-       "How was it? Tap below, or write:" in msg and msg.endswith("or write:"), msg
-assert S.message([("2026-11-04", [])], "en", 15, False).endswith("Check before you go.\nHow was it? Write:")
-assert S.message([("2026-11-04", [])], "es", 15, True).startswith("🌊 Olas en los próximos dos días\n\n")
-assert S.message([("2026-11-04", [])], "id", 15, True).startswith("🌊 Ombak dua hari ke depan\n\n")
-for loc in ("es", "id"):
-    assert S.message([("2026-11-04", [])], loc, 15, True).endswith(":") and S.message([("2026-11-04", [])], loc, 15, False).endswith(":")
+assert "\n\nThursday 5 Nov: nothing looks good\n\n" in msg and msg.endswith("Check before you go.\nHow was it? Write:"), msg
+assert "Tap below" not in msg, "the pack cannot know whether the node sends buttons: one footer, the rule's {act} follows it"
+assert S.message([("2026-11-04", [])], "es", 15).startswith("🌊 Olas en los próximos dos días\n\n")
+assert S.message([("2026-11-04", [])], "id", 15).startswith("🌊 Ombak dua hari ke depan\n\n")
+assert S.message([("2026-11-04", [])], "es", 15).endswith("Compruébalo antes de ir.\n¿Cómo estuvo? Escribe:")
+assert S.message([("2026-11-04", [])], "id", 15).endswith("Cek dulu sebelum berangkat.\nBagaimana ombaknya? Tulis:")
+import inspect  # noqa: E402
+assert list(inspect.signature(S.message).parameters) == ["days", "locale", "comfort_kw"], "no with_buttons"
 
 # pick: his hours first, then power, at most three, good only
 def res(sid, kw, inside=True, good=True):
@@ -314,9 +315,6 @@ assert S.spot_block(ulu, gl, "es", 15).split("\n")[2] == "  potencia 8 kW/m · v
 assert S.spot_block(ulu, gl, "id", 15).split("\n")[2] == "  tenaga 8 kW/m · angin 4 km/h, mulus · air pasang"
 
 # copy
-assert S.message([("2026-11-04", [])], "es", 15, True).endswith(
-    "Es un modelo, no un parte de surf. Compruébalo antes de ir.\n¿Cómo estuvo? Toca abajo, o escribe:")
-assert S.message([("2026-11-04", [])], "es", 15, False).endswith("Compruébalo antes de ir.\n¿Cómo estuvo? Escribe:")
 assert kb[2][1]["text"]["id"] == "Berselancar di tempat lain", kb[2][1]["text"]
 assert kb[2][1]["ask"]["id"] == "Di mana, dan bagaimana ombaknya? Satu baris, atau abaikan saja.", kb[2][1]["ask"]
 
