@@ -48,7 +48,7 @@ def find_spots(note: str, spots: dict) -> list[str]:
     return [sid for _, sid in sorted(found)]
 
 
-_RUN = r"\d\d–\d\d(?:, \d\d–\d\d)*"
+_RUN = r"\d\d:00–\d\d:00(?:, \d\d:00–\d\d:00)*"
 
 
 def _line(tmpl: str, name: str) -> re.Pattern:
@@ -70,8 +70,8 @@ def _first_day(text: str) -> str:
 
 
 def windows_in(text: str, spots: dict) -> dict[str, tuple[int, int]]:
-    """Hours of tomorrow's window per spot. v1.1: "best 09:00–11:00" is hours 9 and 10, "good 05–08, outside your
-    hours" is 5 to 8. v1: "Name 5–12:"."""
+    """Hours of tomorrow's window per spot. v1.1: "best 09:00–11:00" is hours 9 and 10, "good 05:00–09:00, outside your
+    hours" is hours 5 to 8 (the first run). v1: "Name 5–12:"."""
     text, out = _first_day(text), {}
     for sid, sp in spots.items():
         m = re.search(re.escape(sp["name"]) + r" (\d+)–(\d+):", text)
@@ -82,7 +82,7 @@ def windows_in(text: str, spots: dict) -> dict[str, tuple[int, int]]:
                 out[sid] = (int(m["f"]), int(m["t"]) - 1)
             elif m := _line(W["b_out"], sp["name"]).search(text):
                 f, t = m["r"].split(", ")[0].split("–")
-                out[sid] = (int(f), int(t))
+                out[sid] = (int(f[:2]), int(t[:2]) - 1)
             else:
                 continue
             break

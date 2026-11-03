@@ -97,6 +97,12 @@ def v11(locale="en", comfort=15):
 for loc in ("en", "es", "id"):
     t = v11(loc)
     assert R.windows_in(t, spots) == {"uluwatu": (9, 10), "keramas": (5, 8)}, (loc, R.windows_in(t, spots), t)
+# the text as the pack prints it: runs end-exclusive, "HH:00–HH:00", like the best window
+T11 = ("🌊 Surf in the next two days\n\nWednesday 4 Nov\n"
+       "• Uluwatu, best 09:00–11:00 (good 05:00–12:00)\n  waves 1.0 m every 13 s, from the SSW\n"
+       "• Keramas, good 05:00–09:00, 16:00–18:00, outside your hours\n  waves 1.0 m every 13 s, from the S\n\n"
+       "Thursday 5 Nov\n• Uluwatu, best 14:00–16:00 (good 13:00–17:00)")
+assert R.windows_in(T11, spots) == {"uluwatu": (9, 10), "keramas": (5, 8)}, R.windows_in(T11, spots)
 none = S.message([("2026-10-28", []), ("2026-10-29", [(spots["uluwatu"], _a((9, 10), [(5, 11)]))])], "en", 15, True)
 assert R.windows_in(none, spots) == {}, "day 2 is not tomorrow"
 print("  windows_in: v1.1 first day block only, en/es/id, best and outside-hours lines")

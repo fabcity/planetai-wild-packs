@@ -17,7 +17,7 @@ from pathlib import Path
 import yaml
 
 KW_PER = 1025 * 9.81 ** 2 / (64 * math.pi) / 1000      # kW per metre of crest, per m² s: P = ρg²/(64π) H² T
-FIRST_H, LAST_H = 5, 18
+FIRST_H, LAST_H = 5, 17          # the hours 05:00-06:00 to 17:00-18:00: sunset in Bali is about 18:00-18:40 all year
 OFFSHORE_MAX_KMH, GLASSY_KMH = 25, 8
 MIX_SHARE, MIX_APART = 0.25, 20
 
@@ -173,7 +173,7 @@ def _tide_range(rows):
 
 
 def good_runs(spot: dict, rows: list[dict], min_period: float = 10.0) -> list[tuple[int, int]]:
-    """Inclusive runs of at least two passing hours between 05 and 18."""
+    """Inclusive runs of at least two passing hours, the first hour 05 and the last 17 (17:00-18:00)."""
     lo, hi = _tide_range(rows)
     by_hr = {r["hr"]: r for r in rows}
     runs, run = [], []
@@ -248,7 +248,7 @@ def pick(results: list[tuple[dict, dict]], n: int = 3) -> list[tuple[dict, dict]
 def spot_block(spot: dict, a: dict, locale: str, comfort_kw: float) -> str:
     """The four lines of one spot: when, waves, power and wind and tide, the Windy link."""
     W = WORDS.get(locale, WORDS["en"])
-    runs = ", ".join(f"{f:02d}–{t:02d}" for f, t in a["runs"])
+    runs = ", ".join(f"{f:02d}:00–{t + 1:02d}:00" for f, t in a["runs"])     # end-exclusive, like the window
     if a["inside"]:
         f, t = a["window"]
         l1 = W["b_best"].format(name=spot["name"], f=f"{f:02d}", t=f"{t + 1:02d}", runs=runs)
