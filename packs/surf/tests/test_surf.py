@@ -118,9 +118,28 @@ d = day([5, 6, 13, 14])
 a = S.assess(ulu, d)
 assert a["runs"] == [(5, 6), (13, 14)] and a["window"] == a["runs"][0] and not a["inside"], a
 
-# a window stays inside its run: 09-11 is his, but only 09-10 is good, so a three-hour session is not inside
+# a window stays inside its run: 09-11 is his, but only 09-10 is good, so a three-hour session does not fit and the
+# two-hour block that does is the window
 a = S.assess(ulu, day([9, 10]), hours="09:00-12:00", session_h=3)
-assert a["window"] == (9, 10) and not a["inside"], a
+assert a["window"] == (9, 10) and a["inside"], a
+
+# when no full session fits, shorter blocks are tried, session_h - 1 down to 1, and the first length that fits wins:
+# a run 10-12, his hours 09-11, a three-hour session: 10-11 (two hours, mean wind 3.5) beats 11 alone (wind 1.0)
+d = day([10, 11, 12], wind=6.0)
+d[11]["wind"] = 1.0
+a = S.assess(ulu, d, hours="08:30-12:00", session_h=3)
+assert a["window"] == (10, 11) and a["inside"] and a["wind"] == 3.5, a
+# no two-hour block fits (the hour 12 is not his): the one-hour block with the lowest wind
+a = S.assess(ulu, day([11, 12], wind=6.0), hours="08:30-12:00", session_h=2)
+assert a["window"] == (11, 11) and a["inside"] and a["wind"] == 6.0, "11:00-12:00 is inside 08:30-12:00: " + str(a)
+# a block that starts inside his hours and runs past them is not inside: 11-12 starts at 11 but 12 is not his
+a = S.assess(ulu, day([11, 12, 13]), hours="09:00-12:00", session_h=2)
+assert a["window"] == (11, 11) and a["inside"], "the one hour that fits, not 11-12: " + str(a)
+a = S.assess(ulu, day([12, 13]), hours="09:00-12:00", session_h=2)
+assert a["window"] == (12, 13) and not a["inside"], "nothing of the run is his: the run, outside: " + str(a)
+# equal wind among one-hour blocks: the earlier
+a = S.assess(ulu, day([10, 11, 12]), hours="10:00-11:00,16:00-17:00", session_h=2)
+assert a["window"] == (10, 10) and a["inside"], a
 
 # a session of zero hours is a session of one, not a division by zero
 assert S.assess(ulu, day([9, 10]), session_h=0) == S.assess(ulu, day([9, 10]), session_h=1)
@@ -166,6 +185,12 @@ assert a["good"] and a["runs"][0] == (5, 12), a
 assert S.assess(ulu, fixture_day(ULU, "2026-11-01"))["good"]
 assert not S.assess(ulu, fixture_day(ULU, "2026-10-31"))["good"]
 assert not S.assess(spots["green-bowl"], fixture_day(GB, "2026-11-01"))["good"]
+# a good run that partly overlaps his hours is inside them, as a shorter block (the real 1 and 2 Nov messages said
+# "outside your hours" for both: 11-12 is inside 08:30-12:00 and 17-18 inside 16:00-18:30)
+bal = S.assess(spots["balangan"], fixture_day(ULU, "2026-11-01"))
+assert bal["runs"] == [(11, 12)] and bal["window"] == (11, 11) and bal["inside"], bal
+a2 = S.assess(ulu, fixture_day(ULU, "2026-11-02"))
+assert a2["runs"] == [(17, 18)] and a2["window"] == (17, 17) and a2["inside"], a2
 assert S.assess(spots["green-bowl"], fixture_day(GB, "2026-11-02"))["good"]
 print("  archive: Uluwatu good 28 Oct and 1 Nov, not 31 Oct; Green Bowl not 1 Nov, good 2 Nov (spec §5)")
 

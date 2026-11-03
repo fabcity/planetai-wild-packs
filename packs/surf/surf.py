@@ -192,9 +192,10 @@ def _mean(xs):
 
 
 def assess(spot: dict, rows: list[dict], min_period: float = 10.0, hours: str | None = None, session_h: int = 2) -> dict:
-    """Every good hour as `runs`; `window` is the session_h hours inside `hours` with the lowest mean wind (earlier on a
-    tie), `inside` True. With none, `window` is the first run and `inside` False. The numbers are means over the window's
-    hours, the direction, second swell and tide from its first hour."""
+    """Every good hour as `runs`; `window` is the session_h hours inside `hours` and inside a run with the lowest mean
+    wind (earlier on a tie), `inside` True. When no full session fits, the same with session_h - 1 hours, down to one:
+    the first length that fits wins. With none, `window` is the first run and `inside` False. The numbers are means over
+    the window's hours, the direction, second swell and tide from its first hour."""
     session_h = max(1, int(session_h))
     runs = good_runs(spot, rows, min_period)
     out = {"good": bool(runs), "runs": runs, "window": None, "inside": False,
@@ -204,13 +205,16 @@ def assess(spot: dict, rows: list[dict], min_period: float = 10.0, hours: str | 
     by_hr = {r["hr"]: r for r in rows}
     mine = set(parse_hours(hours or DEFAULT_HOURS))
     best = None
-    for a, b in runs:
-        for f in range(a, b - session_h + 2):
-            span = range(f, f + session_h)
-            if all(h in mine for h in span):
-                w = _mean([by_hr[h]["wind"] for h in span])
-                if best is None or w < best[0]:
-                    best = (w, f, f + session_h - 1)
+    for n in range(session_h, 0, -1):               # a full session first, then shorter blocks down to one hour
+        for a, b in runs:
+            for f in range(a, b - n + 2):
+                span = range(f, f + n)
+                if all(h in mine for h in span):
+                    w = _mean([by_hr[h]["wind"] for h in span])
+                    if best is None or w < best[0]:
+                        best = (w, f, f + n - 1)
+        if best:
+            break
     out["inside"] = best is not None
     f, t = best[1:] if best else runs[0]
     span = range(f, t + 1)
