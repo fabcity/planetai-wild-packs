@@ -18,9 +18,10 @@ the one I only want when I ask for it (`ask`, below). Another coast needs its ow
 ## My hours
 
 `SURF_HOURS` holds the hours I can usually get away, 08:30-12:00 and 16:00-18:30 by default. The best window is the
-`SURF_SESSION_H` hours inside them (two by default) where the wind is lightest. A spot that is good only outside my
-hours still shows, with "good 05–08, outside your hours", because I can try to make time if the surf is good. Spots
-with a window inside my hours come first, then the others, and each group goes by power.
+`SURF_SESSION_H` hours inside them (two by default) where it is good and the wind is lightest. Spots with a window
+inside my hours come first, then the others, and each group goes by power. A day shows at most three spots, so a spot
+that is good only outside my hours, with "good 05–08, outside your hours", shows only when fewer than three fit
+inside them. I can try to make time if the surf is good.
 
 "Big for you right now" is a label. When a line's power is over `SURF_COMFORT_KW` (15 kW/m by default, about 1.5 m at
 13 s), the line says so. It never hides a spot. If a big day is good I want to know, and I will decide myself.
@@ -29,14 +30,17 @@ with a window inside my hours come first, then the others, and each group goes b
 
 Under the message, each spot named for tomorrow gets a row with 👍, 👌 and 👎, and a last row says "Didn't go" or
 "Surfed somewhere else". The buttons show in Telegram and on the dashboard's Now. A rating or "somewhere else" asks for
-one optional line afterwards, and whatever I write becomes that answer's note.
+one optional line afterwards, and whatever I write becomes that answer's note. The values the journal reads are
+`<spot-id>:good`, `<spot-id>:ok` and `<spot-id>:poor`, `didnt-go` and `elsewhere`.
 
 A tap closes only that spot's row, so a morning at Uluwatu and an evening at Nyang Nyang can both be rated, and "Didn't
 go" closes the keyboard. Two people in the house can each answer. The buttons are for tomorrow only, since the day after
 comes back as tomorrow in the next evening's message. If tomorrow has nothing good, the message goes without buttons.
 
-Typing still works, with the number in the message and my own words, for example
-`/act 812 Ulu good, head high 6 to 8, Impossibles closing out`.
+The buttons go out in Telegram only where the bot has turned them on (`TELEGRAM_BUTTONS=1`, which the bot sets when it
+starts). Without the bot the message goes bare, and typing is the way to answer, with the number in the message and my
+own words, for example `/act 812 Ulu good, head high 6 to 8, Impossibles closing out`. Typing works with the buttons
+too.
 
 ## The journal
 
@@ -63,7 +67,7 @@ three-hour timer alone. The bot can run it when I ask it how Bingin looks tomorr
 - `SURF_COMFORT_KW`: the power in kW/m above which a line says "big for you right now", 15 by default.
 - The message is a `warn` alert, so it reaches Telegram only where `ALERT_LEVEL` is `warn` or `info`. On the default
   `act` it is recorded and shown on the page, and not sent.
-- It is a code pack, so the node runs it only with `PACKS_ALLOW_CODE=1`. It needs a node that fills `{act}` in a
+- It is a code pack, so the node runs it only with `PACKS_ALLOW_CODE=1`. It needs node 0.91.0 or later, which fills `{act}` in a
   rule's message and shows a rule's buttons.
 
 ## Where the numbers come from
