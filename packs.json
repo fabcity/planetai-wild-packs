@@ -103,10 +103,10 @@
     "name": "Surf, two days",
     "source": "fabcity/planetai-wild-packs/packs/surf",
     "author": "Tomas Diez (Fab City Foundation)",
-    "reads": "At 17:00, up to three surf spots a day for the next two days, from Open-Meteo's GFS Wave swell, sea level and wind, each with its best window (your own hours first), the swell, power, wind and tide spelled out, and a Windy link, buttons to say how it was, a journal of each spot, and an ask command for any spot (key-free)",
+    "reads": "At 17:00, up to three surf spots a day for the next two days, from Open-Meteo's GFS Wave swell, sea level and wind, each with its best window (your own hours first), the swell, power, wind and tide spelled out, and a Windy link, buttons to say how it was, a journal of each spot, an ask command for any spot, and its line in Next days on Now (key-free)",
     "kind": "code",
     "licence": "Apache-2.0 (code); Open-Meteo data CC BY 4.0, NOAA GFS Wave, Copernicus Marine / MeteoFrance (data)",
-    "tested_with": "not yet run on a node",
+    "tested_with": "v0.91.0",
     "status": "listed"
   }
 ]
