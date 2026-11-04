@@ -10,6 +10,8 @@
 5. The node's own tools/check_rules.py runs over core and wild rules together.
 6. Each pack's own tests (<id>/tests/test_*.py) run from the node's folder.
 
+Step 4 also holds a pack's `ahead:` (a line in Next days) to the node's rules.
+
 Standard library and PyYAML. Exits 1 on the first step that fails, after printing every problem that step found.
 """
 from __future__ import annotations
@@ -110,6 +112,28 @@ def fetch(e: dict, dest: Path) -> None:
         raise RuntimeError(f"{e['source']} at {e['commit'][:12]} has nothing at that path")
 
 
+AHEAD_LOCALES = ("en", "es", "id")
+
+
+def ahead_problems(a) -> list[str]:
+    """`ahead:` in a pack.yaml, by the node's own rules (app/packs.py, _ahead_problems): one that fails is left out of
+    Next days with a line in the node's log, so here it fails the check."""
+    if not isinstance(a, dict):
+        return ["ahead must be a mapping"]
+    p = []
+    if not isinstance(a.get("id"), str) or not re.fullmatch(r"[a-z0-9][a-z0-9-]*", a["id"]):
+        p.append("its id must be lowercase letters, digits and hyphens")
+    if not isinstance(a.get("sensor"), str) or not a["sensor"]:
+        p.append("it needs the sensor whose meta holds the text")
+    t = a.get("title")
+    if not (isinstance(t, dict) and all(isinstance(t.get(loc), str) and t[loc] for loc in AHEAD_LOCALES)):
+        p.append("it needs a title in en, es and id")
+    d = a.get("days")
+    if not (isinstance(d, list) and len(d) == 2 and all(isinstance(k, str) and "_" in k.strip("_") for k in d)):
+        p.append("days must be exactly two meta keys, written without a locale (ahead_d1)")
+    return p
+
+
 def manifest_problems(e: dict, d: Path) -> list[str]:
     import yaml
     f = d / "pack.yaml"
@@ -122,6 +146,8 @@ def manifest_problems(e: dict, d: Path) -> list[str]:
     kind = "code" if (d / "adapter.py").is_file() else "data"
     if kind != e["kind"]:
         out.append(f"{e['id']}: listed as {e['kind']}, but it is a {kind} pack (adapter.py {'present' if kind == 'code' else 'absent'})")
+    if m.get("ahead") is not None and (bad := ahead_problems(m["ahead"])):      # an empty `ahead:` is absent, as on the node
+        out.append(f"{e['id']}: ahead: {'; '.join(bad)}; the node would leave its line out of Next days")
     return out
 
 

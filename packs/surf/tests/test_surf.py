@@ -343,4 +343,19 @@ assert kb[0][1]["ask"]["en"] != "edited" and S.keyboard([ulu])[0][0]["ask"]["en"
 
 print("  message: every number named, two days, one block per spot; keyboard: node's button contract")
 
+# the short line for Next days: each picked spot's best window, " · " between, at most 160 characters at a whole spot
+imp = dict(ulu, id="impossibles", name="Impossibles")
+at4 = dict(A_ULU, window=(16, 17))
+assert S.ahead_text([(ulu, at4), (imp, at4)], "en") == "Uluwatu 16:00–18:00 · Impossibles 16:00–18:00"
+assert S.ahead_text([(ulu, A_ULU)], "es") == "Uluwatu 09:00–11:00" and S.ahead_text([(ulu, A_ULU)], "id") == "Uluwatu 09:00–11:00"
+assert S.ahead_text([(ulu, dict(A_ULU, window=(17, 18)))], "en") == "Uluwatu 17:00–18:30", "a run ending at hour 18 prints 18:30"
+assert S.ahead_text([(ulu, dict(A_ULU, inside=False, window=(5, 7)))], "en") == "Uluwatu 05:00–08:00", "outside his hours still shows"
+assert S.ahead_text([(ulu, dict(A_ULU, kw=40.0))], "en") == "Uluwatu 09:00–11:00", "big for you never hides a spot"
+assert [S.ahead_text([], loc) for loc in ("en", "es", "id")] == ["nothing looks good", "nada parece bueno", "sepertinya tidak ada yang bagus"]
+long = [(dict(ulu, name="Spot number %02d of the coast" % i), at4) for i in range(9)]   # 39 chars each, 3 + 39 between
+t = S.ahead_text(long, "en")
+assert len(t) == 3 * 39 + 2 * 3 <= 160 and t.count(" · ") == 2 and t.endswith("Spot number 02 of the coast 16:00–18:00"), (len(t), t)
+assert len(S.ahead_text(long[:4], "en", limit=10**6)) > 160, "the fourth would have gone over, so it is cut whole, not mid-name"
+print("  ahead_text: best window per spot, 18:30 at dusk, localized nothing, 160 characters at a spot boundary")
+
 print("surf: all checks passed")

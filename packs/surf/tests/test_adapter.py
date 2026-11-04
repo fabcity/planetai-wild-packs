@@ -124,7 +124,8 @@ assert (S["source"], S["kind"], S["scale"], S["cadence"], S["local"], S["indoor"
     ("surf", "model", "bioregion", "PT3H", False, False), S
 assert (S["lat"], S["lon"]) == (-8.815, 115.087), "the first watched spot's position"
 m = S["meta"]
-assert set(m) == {"attribution", "fetched", "any", "text_en", "text_es", "text_id", "buttons"}, set(m)
+ahead = {f"ahead_{loc}_{d}" for loc in ("en", "es", "id") for d in ("d1", "d2")}
+assert set(m) == {"attribution", "fetched", "any", "text_en", "text_es", "text_id", "buttons"} | ahead, set(m)
 assert m["fetched"] == "2026-10-27" and m["any"] == "1", m
 assert m["text_en"].startswith("🌊 Surf in the next two days") and "Wednesday 28 Oct" in m["text_en"], m["text_en"]
 assert m["text_es"].startswith("🌊 Olas en los próximos dos días") and m["text_id"].startswith("🌊 Ombak dua hari"), m
@@ -141,12 +142,16 @@ assert val[("surf-uluwatu", "surf_good_d2")] == 1 and val[("surf-uluwatu", "surf
 assert val[("surf-green-bowl", "surf_good_d2")] == 0, val
 declared = {c["metric"] for c in yaml.safe_load((HERE.parent / "channels.yml").read_text())}
 assert {m for _, _, m, _ in readings} <= declared and len(declared) == 29, {m for _, _, m, _ in readings} - declared
+assert m["ahead_en_d1"].startswith("Uluwatu ") and m["ahead_en_d1"] == m["ahead_es_d1"] == m["ahead_id_d1"], m
+assert m["ahead_en_d1"] == "Uluwatu 09:00–11:00" and m["ahead_en_d1"].split(" ", 1)[1] in m["text_en"] and len(m["ahead_en_d2"]) <= 160, m
+assert (yaml.safe_load((HERE.parent / "pack.yaml").read_text())["ahead"]["sensor"], m["fetched"]) == ("surf", "2026-10-27")
 print("  the summary sensor: dates, three texts, the buttons of tomorrow's picks, the _d2 readings, 29 metrics declared")
 
 env(SURF_SPOTS="green-bowl")
 S = {s["sensor_id"]: s for s in A.fetch(HC())[0]}["surf"]["meta"]
 assert S["any"] == "0" and S["buttons"] == "[]" and "nothing looks good" in S["text_en"], S
 assert S["text_en"].endswith("How was it? Write:"), S["text_en"]
+assert (S["ahead_en_d1"], S["ahead_es_d2"], S["ahead_id_d1"]) == ("nothing looks good", "nada parece bueno", "sepertinya tidak ada yang bagus"), S
 print("  nothing good: any 0, no buttons")
 
 cut = {k: [{**d, "hourly": {n: v[:36] for n, v in d["hourly"].items()}} for d in v] for k, v in FX.items()}
@@ -155,6 +160,7 @@ sensors, readings = A.fetch(HC(fx=cut))
 S = {s["sensor_id"]: s for s in sensors}["surf"]["meta"]
 day2 = S["text_en"].split("\n\n")[2]
 assert day2 == "Thursday 29 Oct: nothing looks good" and S["any"] == "1", S["text_en"]
+assert S["ahead_en_d2"] == "nothing looks good" and S["ahead_en_d1"].startswith("Uluwatu"), S
 val = {(s, m): v for ts, s, m, v in readings}
 assert val[("surf-uluwatu", "surf_good_d2")] == 0 and ("surf-uluwatu", "surf_swell_m_d2") not in val, val
 assert val[("surf", "surf_spots_good")] == 1.0, val
