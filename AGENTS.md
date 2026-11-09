@@ -66,3 +66,5 @@ on nobody's node without saying why.
 - Do not change `tools/check.py` or the workflow to make a pack pass. If the check is wrong, say so in its own pull
   request.
 - Do not list a pack you have not run on a node. `tested_with` is a release somebody actually ran it on.
+- Do not commit plans, specs, handoffs or reviews here. This repository is public; working records go to the
+  private `planetai-design` repo under `wild-docs/`. A pack's README says what a keeper needs to know.
