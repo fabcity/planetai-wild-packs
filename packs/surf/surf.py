@@ -1,5 +1,5 @@
-"""Where surf could be good tomorrow, from Open-Meteo's hourly swell, tide and wind (design: docs/superpowers/specs/
-2026-11-02-surf-pack-design.md, §5). Pure Python, no network: adapter.py fetches and stores, review.py journals, and
+"""Where surf could be good tomorrow, from Open-Meteo's hourly swell, tide and wind (design: 2026-11-02-surf-pack-design.md §5,
+kept privately in planetai-design). Pure Python, no network: adapter.py fetches and stores, review.py journals, and
 both judge with this.
 
 An hour passes when four things hold: a swell from the spot's window, at SURF_MIN_PERIOD seconds or more, with its

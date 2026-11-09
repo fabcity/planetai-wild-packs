@@ -93,4 +93,4 @@ planetai run wyze-camera snapshot [camera]
   history and the bridge address. `snapshot` takes a photo. v0.77 runs a wild pack's scripts
   for an agent only when its pack.yaml lists them under `agent_scripts:`, and this pack lists none. Until you update,
   keep agents disconnected, or give them no admin access.
-- The design, and why: `docs/superpowers/specs/2026-10-03-wyze-camera-pack-design.md` in fabcity/planetai-wild-packs.
+- The design, and why: `2026-10-03-wyze-camera-pack-design.md` (kept privately in planetai-design, `wild-docs/specs/`).

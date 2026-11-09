@@ -1,6 +1,6 @@
 """wyze-camera: Wyze cameras through docker-wyze-bridge. Records motion events and saves snapshots in out/wyze-camera,
 and gives the node nothing: no sensors and no readings, so none of it reaches the database, the daily export, the
-upstream aggregates or any API (see README.md and docs/superpowers/specs/2026-10-03-wyze-camera-pack-design.md).
+upstream aggregates or any API (see README.md and `2026-10-03-wyze-camera-pack-design.md` (kept privately in planetai-design, `wild-docs/specs/`)).
 
 Contract: fetch(hc) -> (sensors, readings), like everything in app/sources.py. The node runs this file afresh at every
 poll, so nothing is kept in memory between polls: what must last is in out/wyze-camera/state.json."""

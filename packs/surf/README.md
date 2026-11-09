@@ -93,8 +93,8 @@ the window's first hour. When no window fits inside my hours, they are the first
 
 Every one of those numbers is a first guess, and so is every row of `spots.yml`. I wrote the table from general
 knowledge, I haven't surfed all of these breaks, and I checked the rule on a week of Open-Meteo's own archive against
-three days other people told me about. The design is in `docs/superpowers/specs/2026-11-02-surf-pack-design.md`, and
-what v1.1 changed is in `docs/superpowers/specs/2026-11-03-surf-v1.1-and-pack-buttons-design.md`. The journal is how
+three days other people told me about. The design is in `2026-11-02-surf-pack-design.md` (kept privately in planetai-design, `wild-docs/specs/`), and
+what v1.1 changed is in `2026-11-03-surf-v1.1-and-pack-buttons-design.md` (kept privately in planetai-design, `wild-docs/specs/`). The journal is how
 the numbers get better, so read it after a few weeks and fix `spots.yml`.
 
 Measuring a swell by its power and keeping a journal for each spot come from the forecasting guide Grant (Surfing

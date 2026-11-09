@@ -6,7 +6,7 @@ is sold for villas one field at a time. Nobody in a house sees that across a few
 
 It reads Sentinel-2 from Microsoft Planetary Computer, every clear 10 m pixel over 25 months, with no key and no new
 library. It counts rice and nothing else. The design and the tests behind every threshold are in
-`docs/superpowers/specs/2026-10-30-paddy-pack-design.md` in this repository.
+`2026-10-30-paddy-pack-design.md` (kept privately in planetai-design, `wild-docs/specs/`).
 
 ## The five questions
 
