@@ -116,4 +116,23 @@ with tempfile.TemporaryDirectory() as out:
     assert A.fetch(hc) == ([], [])
     assert A.fetch(hc) == ([], []) and hc.calls == ["stations"], hc.calls
 
+# pack.yaml: no value left empty (an unquoted comma in a flow mapping cuts a label short and leaves a null key), and
+# every readout label in the three locales
+import yaml  # noqa: E402
+
+MANIFEST = yaml.safe_load((HERE.parent / "pack.yaml").read_text())
+
+
+def nulls(o, path=""):
+    if isinstance(o, dict):
+        return [p for k, v in o.items() for p in ([f"{path}/{k}"] if v is None else nulls(v, f"{path}/{k}"))]
+    if isinstance(o, list):
+        return [p for i, v in enumerate(o) for p in nulls(v, f"{path}[{i}]")]
+    return []
+
+
+assert nulls(MANIFEST) == [], nulls(MANIFEST)
+for ro in MANIFEST["readouts"]["water"] + MANIFEST["sections"][0]["readouts"]:
+    assert sorted(ro["label"]) == ["en", "es", "id"], ro["label"]
+
 print("digital-subak: ok")

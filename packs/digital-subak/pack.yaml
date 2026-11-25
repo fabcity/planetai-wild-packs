@@ -41,4 +41,4 @@ readouts:
     - { metric: rainfall_24h, sensor_id: dsubak-kedungu, unit: mm, dp: 1,
         label: { en: Rain in 24 hours at Kedungu (Digital Subak), id: Hujan 24 jam di Kedungu (Digital Subak), es: Lluvia en 24 horas en Kedungu (Digital Subak) } }
     - { metric: water_balance_7d, sensor_id: dsubak-kedungu, unit: mm, dp: 0,
-        label: { en: Water balance at Kedungu, 7 days (Digital Subak), id: Neraca air di Kedungu, 7 hari (Digital Subak), es: Balance hídrico en Kedungu, 7 días (Digital Subak) } }
+        label: { en: "Water balance at Kedungu, 7 days (Digital Subak)", id: "Neraca air di Kedungu, 7 hari (Digital Subak)", es: "Balance hídrico en Kedungu, 7 días (Digital Subak)" } }
