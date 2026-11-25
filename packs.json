@@ -108,5 +108,16 @@
     "licence": "Apache-2.0 (code); Open-Meteo data CC BY 4.0, NOAA GFS Wave, Copernicus Marine / MeteoFrance (data)",
     "tested_with": "v0.91.0",
     "status": "listed"
+  },
+  {
+    "id": "digital-subak",
+    "name": "Digital Subak weather stations",
+    "source": "fabcity/planetai-wild-packs/packs/digital-subak",
+    "author": "Tomas Diez (Fab City Foundation)",
+    "reads": "Digital Subak's own weather stations in Tabanan, Bali (Kedungu, Sarinbuana, Island Organics): air, wind, sun, rain every 5 minutes, and each day's ET0 and the 7-day water balance, from digitalsubak.id (key-free); never its Weather Underground stations; kept on the node",
+    "kind": "code",
+    "licence": "Apache-2.0 (code); Digital Subak's data, used with Radek Oborny's permission on the node only (data)",
+    "tested_with": "not yet run on a node",
+    "status": "listed"
   }
 ]

@@ -1,0 +1,44 @@
+id: digital-subak
+name: Digital Subak weather stations
+description: >-
+  The weather stations Digital Subak runs in Bali with its partners (Kedungu, Sarinbuana and Island Organics): air,
+  wind, sun, rain, and each day's evaporation (ET0) and the 7-day water balance. Read from digitalsubak.id, key-free.
+  Only Digital Subak's own stations, never the Weather Underground ones it also shows. Kept on the node.
+author: Tomas Diez (Fab City Foundation)
+version: 0.1.0
+# 0.82: `role: private` in channels.yml. Readouts and sections need 0.76, so 0.82 covers both.
+requires: { node: ">=0.82" }
+kind: code
+domain: weather
+metrics: [temp, humidity, dewpoint, pressure, wind_speed, wind_gust, wind_direction, solar, uv, rainfall_1h,
+          rainfall_24h, rainfall_day, et0, water_balance_7d]
+scales: [region]
+needs: >-
+  digitalsubak.id over HTTPS: one call every 5 minutes and one an hour, a few kilobytes each. No key.
+attribution: >-
+  Data: Digital Subak (digitalsubak.id), stations hosted by Kedungu Garden Homes, Sarinbuana Eco Lodge and Island
+  Organics. Used with Radek Oborny's permission (25 Nov 2026), on this node only.
+
+sections:
+  - id: digital-subak
+    stage: observe
+    title: { en: "Digital Subak's weather stations", id: "Stasiun cuaca Digital Subak", es: "Las estaciones meteorológicas de Digital Subak" }
+    order: 48
+    note:
+      en: Three stations Digital Subak runs with farms and lodges in Tabanan, from Kedungu by the sea to Island Organics up the mountain. Measured there, not here. The water balance is the last 7 days of rain minus what a crop would lose to the air, a guide for irrigation.
+      id: Tiga stasiun yang dijalankan Digital Subak bersama kebun dan penginapan di Tabanan, dari Kedungu di tepi laut sampai Island Organics di pegunungan. Diukur di sana, bukan di sini. Neraca air adalah hujan 7 hari terakhir dikurangi air yang hilang dari tanaman ke udara, sebagai panduan irigasi.
+      es: Tres estaciones que Digital Subak tiene con fincas y alojamientos en Tabanan, desde Kedungu junto al mar hasta Island Organics en la montaña. Se miden allí, no aquí. El balance hídrico es la lluvia de los últimos 7 días menos lo que un cultivo pierde al aire, una guía para regar.
+    readouts:
+      - { metric: rainfall_24h, sensor_id: dsubak-kedungu, unit: mm, dp: 1, label: { en: Kedungu rain in 24 hours, id: hujan 24 jam di Kedungu, es: lluvia en 24 horas en Kedungu } }
+      - { metric: water_balance_7d, sensor_id: dsubak-kedungu, unit: mm, dp: 0, label: { en: Kedungu water balance (7 days), id: neraca air Kedungu (7 hari), es: balance hídrico en Kedungu (7 días) } }
+      - { metric: temp, sensor_id: dsubak-kedungu, unit: °C, dp: 1, label: { en: Kedungu air, id: udara Kedungu, es: aire en Kedungu } }
+      - { metric: rainfall_24h, sensor_id: dsubak-sarinbuana, unit: mm, dp: 1, label: { en: Sarinbuana rain in 24 hours, id: hujan 24 jam di Sarinbuana, es: lluvia en 24 horas en Sarinbuana } }
+      - { metric: water_balance_7d, sensor_id: dsubak-sarinbuana, unit: mm, dp: 0, label: { en: Sarinbuana water balance (7 days), id: neraca air Sarinbuana (7 hari), es: balance hídrico en Sarinbuana (7 días) } }
+      - { metric: rainfall_24h, sensor_id: dsubak-island_organics, unit: mm, dp: 1, label: { en: Island Organics rain in 24 hours, id: hujan 24 jam di Island Organics, es: lluvia en 24 horas en Island Organics } }
+
+readouts:
+  water:
+    - { metric: rainfall_24h, sensor_id: dsubak-kedungu, unit: mm, dp: 1,
+        label: { en: Rain in 24 hours at Kedungu (Digital Subak), id: Hujan 24 jam di Kedungu (Digital Subak), es: Lluvia en 24 horas en Kedungu (Digital Subak) } }
+    - { metric: water_balance_7d, sensor_id: dsubak-kedungu, unit: mm, dp: 0,
+        label: { en: Water balance at Kedungu, 7 days (Digital Subak), id: Neraca air di Kedungu, 7 hari (Digital Subak), es: Balance hídrico en Kedungu, 7 días (Digital Subak) } }
