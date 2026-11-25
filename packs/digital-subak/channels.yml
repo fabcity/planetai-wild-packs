@@ -1,0 +1,18 @@
+# What each metric IS for this source. See the node's docs/PACKS.md.
+# Radek Oborny allowed a node to use his stations (25 Nov 2026) and said nothing about passing the data on, so every
+# channel is `private`: the page, readouts and sections use it, and nothing about it leaves the node. When he gives a
+# licence that covers sharing, these become `ambient` (real air at a real place, never comparable with the house's own).
+- { source: digital-subak, metric: temp,             role: private, comparable: false, unit: "°C" }
+- { source: digital-subak, metric: humidity,         role: private, comparable: false, unit: "%" }
+- { source: digital-subak, metric: dewpoint,         role: private, comparable: false, unit: "°C" }
+- { source: digital-subak, metric: pressure,         role: private, comparable: false, unit: "kPa" }
+- { source: digital-subak, metric: wind_speed,       role: private, comparable: false, unit: "km/h" }
+- { source: digital-subak, metric: wind_gust,        role: private, comparable: false, unit: "km/h" }
+- { source: digital-subak, metric: wind_direction,   role: private, comparable: false, unit: "°" }
+- { source: digital-subak, metric: solar,            role: private, comparable: false, unit: "W/m²" }
+- { source: digital-subak, metric: uv,               role: private, comparable: false, unit: "" }
+- { source: digital-subak, metric: rainfall_1h,      role: private, comparable: false, unit: "mm" }
+- { source: digital-subak, metric: rainfall_24h,     role: private, comparable: false, unit: "mm" }
+- { source: digital-subak, metric: rainfall_day,     role: private, comparable: false, unit: "mm" }
+- { source: digital-subak, metric: et0,              role: private, comparable: false, unit: "mm" }
+- { source: digital-subak, metric: water_balance_7d, role: private, comparable: false, unit: "mm" }
