@@ -45,7 +45,7 @@ It needs `PACKS_ALLOW_CODE=1` and node v0.82 or later (for `role: private`).
   stations never drive an alert on a node.
 - No history. It starts storing when it is turned on.
 - Digital Subak's own extras (soil moisture, well level, the Pigstone wave buoy, flood reports, BMKG warnings) are
-  not read. Some are still a pilot there.
+  not read.
 
 ## Licence
 
